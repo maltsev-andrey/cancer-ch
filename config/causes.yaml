@@ -1,0 +1,41 @@
+# Canonical cause-of-death list for BFS tables je-d-14.03.04.01.01..04.
+# BFS uses different labels for the same cause in the count and rate blocks
+# (e.g. "Bösartige Tumoren" vs "Krebskrankheiten (bösartige)"), so match by regex.
+# parent: the row this one is a "davon:" child of (never sum children with the parent).
+# icd10: as used by BFS from 1995; 1970-1994 was coded in ICD-8 (series break 1994/95).
+
+causes:
+  - {id: all,          match: "^Alle Todesursachen",               parent: null,    icd10: "A00-Y89"}
+  - {id: infect,       match: "^Infektiöse Krankheiten",           parent: all,     icd10: "A00-B99"}
+  - {id: tb,           match: "^Tuberkulose",                      parent: infect,  icd10: "A15-A19"}
+  - {id: aids,         match: "^AIDS",                             parent: infect,  icd10: "B20-B24"}
+  # COVID-19 sits under "davon:" of infectious diseases in the BFS layout, but U07 is
+  # ICD-10 chapter XXII and is NOT included in the infectious total (2020-23: covid > infect)
+  - {id: covid,        match: "^COVID",                            parent: all,     icd10: "U07.1-U07.2"}
+  - {id: cancer,       match: "^(Bösartige Tumoren|Krebskrankheiten)", parent: all, icd10: "C00-C97"}
+  - {id: stomach,      match: "^Magen$",                           parent: cancer,  icd10: "C16"}
+  - {id: colon,        match: "^Dickdarm",                         parent: cancer,  icd10: "C18-C21"}
+  - {id: lung,         match: "^Lunge$",                           parent: cancer,  icd10: "C33-C34"}
+  - {id: breast,       match: "^Brust$",                           parent: cancer,  icd10: "C50"}
+  - {id: prostate,     match: "^Prostata",                         parent: cancer,  icd10: "C61"}   # men tables only
+  - {id: cervix,       match: "^Gebärmutterhals",                  parent: cancer,  icd10: "C53"}   # women tables only
+  - {id: diabetes,     match: "^Diabetes",                         parent: all,     icd10: "E10-E14"}
+  - {id: dementia,     match: "^Demenz",                           parent: all,     icd10: "F01-F03,G30"}
+  - {id: circ,         match: "^Kreislaufsystem",                  parent: all,     icd10: "I00-I99"}
+  - {id: heart,        match: "^Herzkrankheiten",                  parent: circ,    icd10: "I00-I52"}
+  - {id: ihd,          match: "^Ischämische Herzkrankheiten",      parent: heart,   icd10: "I20-I25"}
+  - {id: embolism,     match: "^Lungenembolie",                    parent: circ,    icd10: "I26"}
+  - {id: cerebro,      match: "^Zerebrovaskuläre",                 parent: circ,    icd10: "I60-I69"}
+  - {id: resp,         match: "^Atmungsorgane",                    parent: all,     icd10: "J00-J99"}
+  - {id: flu,          match: "^Grippe",                           parent: resp,    icd10: "J09-J11"}
+  - {id: pneumonia,    match: "^Pneumonie",                        parent: resp,    icd10: "J12-J18"}
+  - {id: copd,         match: "^Chronische Bronchitis",            parent: resp,    icd10: "J40-J44"}
+  - {id: asthma,       match: "^Asthma",                           parent: resp,    icd10: "J45-J46"}
+  - {id: alc_cirrh,    match: "^Alkoholische Leberzirrhose",       parent: all,     icd10: "K70"}
+  - {id: urinary,      match: "^Harnorgane",                       parent: all,     icd10: "N00-N39"}
+  - {id: congenital,   match: "^Kongenitale",                      parent: all,     icd10: "Q00-Q99"}
+  - {id: perinatal,    match: "^Perinatale",                       parent: all,     icd10: "P00-P96"}
+  - {id: external,     match: "^Unfälle und Gewalt",               parent: all,     icd10: "V01-Y89"}
+  - {id: accidents,    match: "^Unfälle insgesamt",                parent: external, icd10: "V01-X59"}
+  - {id: road,         match: "^Strassenverkehr",                  parent: accidents, icd10: "V01-V89"}
+  - {id: suicide,      match: "^Suizid",                           parent: external, icd10: "X60-X84"}

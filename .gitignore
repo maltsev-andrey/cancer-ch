@@ -1,0 +1,7 @@
+data/
+*.parquet
+*.nc
+config/config.yaml
+.ipynb_checkpoints/
+__pycache__/
+*.log

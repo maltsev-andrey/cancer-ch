@@ -1,0 +1,65 @@
+# cancer-ch source manifest (s01 ingest)
+# Selections are regexes on PxWeb valueTexts (German). Variables not listed -> all values.
+# Run `python pipeline/s01_ingest.py --plan` first: it shows what each regex matched and
+# the cell count per cube, and fails loudly with the available labels if a regex misses.
+
+paths:
+  data: ../data        # relative to the repo root, or absolute; env CANCER_CH_DATA overrides
+
+pxweb:
+  api: https://www.pxweb.bfs.admin.ch/api/v1/de
+  sleep: 1.0              # seconds between requests
+  max_cells: 50000        # BFS PxWeb answers 403 somewhere between 50k and 137k cells
+
+  cubes:
+    # ---- incidence + mortality, NKRS, 6 fixed 5-year periods -------------------------
+    - id: px-x-1403030300_161
+      role: nkrs_counts_age          # region x site x sex x period x age x indicator x measure
+    - id: px-x-1403030300_162
+      role: nkrs_rates_asr           # crude + age-standardised rates (validation target)
+    - id: px-x-1403030300_163
+      role: nkrs_risk_median_ypll
+
+    # ---- population denominators ------------------------------------------------------
+    - id: px-x-0102010000_102
+      role: pop_canton_2010          # canton x sex x age, 2010-2025
+      select:
+        Bevölkerungstyp: "^Ständige Wohnbevölkerung"
+        Zivilstand: "Total"
+    - id: px-x-0102020000_104
+      role: pop_canton_1981          # demographic balance, keep stock components only
+      select:
+        Staatsangehörigkeit (Kategorie): "Total"
+        Demografische Komponente: "Bestand"
+    - id: px-x-0102030000_101
+      role: pop_ch_1860              # CH x sex x age, 1860-2025
+
+dam:
+  api: https://dam-api.bfs.admin.ch/hub/api/dam/assets
+  language: de
+  # latest edition per BFS number is downloaded to raw/bfs_dam/mortality/
+  order_nrs:
+    - id: je-d-14.03.04.01.01
+      role: mort_causes_age_men
+    - id: je-d-14.03.04.01.02
+      role: mort_causes_age_women
+    - id: je-d-14.03.04.01.03
+      role: mort_causes_men_since1970
+    - id: je-d-14.03.04.01.04
+      role: mort_causes_women_since1970
+    - id: su-d-14.03.04.01.11
+      role: mort_apc_all_causes
+    - id: su-d-14.03.04.01.14
+      role: mort_apc_cancer_all
+    - id: su-d-14.03.04.01.15
+      role: mort_apc_stomach
+    - id: su-d-14.03.04.01.16
+      role: mort_apc_colon
+    - id: su-d-14.03.04.01.17
+      role: mort_apc_lung
+    - id: su-d-14.03.04.01.18
+      role: mort_apc_breast
+    - id: su-d-14.03.04.01.19
+      role: mort_apc_cervix
+    - id: su-d-14.03.04.01.20
+      role: mort_apc_prostate

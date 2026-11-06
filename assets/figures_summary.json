@@ -1,0 +1,75 @@
+{
+ "cancer_asr_M": {
+  "peak_year": 1990,
+  "peak": 244.9,
+  "last_year": 2024,
+  "last": 131.3,
+  "change_pct": -46.4
+ },
+ "cancer_asr_F": {
+  "peak_year": 1970,
+  "peak": 153.6,
+  "last_year": 2024,
+  "last": 93.2,
+  "change_pct": -39.3
+ },
+ "bridge": {
+  "colon": 0.85,
+  "prostate": 0.86,
+  "breast": 0.89,
+  "cancer": 0.93,
+  "cervix": 0.952,
+  "lung": 0.96,
+  "stomach": 1.0
+ },
+ "lung_mort_M": {
+  "1970": 57.1,
+  "1990": 64.0,
+  "2000": 52.0,
+  "2010": 41.1,
+  "2024": 26.5
+ },
+ "lung_mort_F": {
+  "1970": 4.9,
+  "1990": 10.6,
+  "2000": 15.9,
+  "2010": 18.7,
+  "2024": 16.9
+ },
+ "lung_inc_M": {
+  "2018-2022": 45.9,
+  "2013-2017": 49.8,
+  "2008-2012": 52.0,
+  "2003-2007": 57.8,
+  "1998-2002": 62.2,
+  "1993-1997": 66.9
+ },
+ "lung_inc_F": {
+  "2018-2022": 32.2,
+  "2013-2017": 30.3,
+  "2008-2012": 28.5,
+  "2003-2007": 25.7,
+  "1998-2002": 21.6,
+  "1993-1997": 18.8
+ },
+ "mi_ratio_2018_22": {
+  "Oesophagus": 0.72,
+  "Brain & CNS": 0.81,
+  "Multiple myeloma": 0.45,
+  "Thyroid": 0.07,
+  "Corpus uteri": 0.22,
+  "Liver": 0.73,
+  "Stomach": 0.48,
+  "Kidney": 0.25,
+  "Oral cavity & pharynx": 0.36,
+  "Leukaemia": 0.43,
+  "Bladder": 0.43,
+  "Non-Hodgkin lymphoma": 0.32,
+  "Pancreas": 0.82,
+  "Skin melanoma": 0.08,
+  "Colorectum": 0.35,
+  "Lung": 0.64,
+  "Breast": 0.2,
+  "Prostate": 0.16
+ }
+}

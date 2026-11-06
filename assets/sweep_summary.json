@@ -1,0 +1,163 @@
+{
+ "n_fits": 214,
+ "n_full": 107,
+ "n_holdout": 107,
+ "converged_full": 107,
+ "converged_holdout": 104,
+ "drift_incidence": {
+  "All cancers/F": 0.37,
+  "All cancers/M": -0.19,
+  "Other sites/F": -0.18,
+  "Other sites/M": -1.93,
+  "Anus/F": 0.9,
+  "Pancreas/F": 1.66,
+  "Pancreas/M": 1.02,
+  "Soft tissue/F": 0.23,
+  "Soft tissue/M": 0.09,
+  "Breast/F": 1.08,
+  "Pleural mesothelioma/M": -1.08,
+  "Colorectum/F": 1.57,
+  "Colorectum/M": 1.68,
+  "Small intestine/M": 1.96,
+  "Ovary/F": -1.14,
+  "Gallbladder/F": -1.27,
+  "Gallbladder/M": 0.52,
+  "Cervix uteri/F": -2.85,
+  "Corpus uteri/F": -0.81,
+  "Brain & CNS/F": 0.69,
+  "Brain & CNS/M": 0.04,
+  "Bladder/F": -0.69,
+  "Bladder/M": -1.52,
+  "Skin melanoma/F": 0.6,
+  "Skin melanoma/M": 0.82,
+  "Testis/M": 0.87,
+  "Hodgkin lymphoma/F": 0.66,
+  "Hodgkin lymphoma/M": 0.92,
+  "Larynx/M": -3.22,
+  "Liver/F": 1.71,
+  "Liver/M": -0.14,
+  "Leukaemia/F": 0.22,
+  "Leukaemia/M": 0.04,
+  "Lung/F": -0.06,
+  "Lung/M": -2.32,
+  "Stomach/F": -0.66,
+  "Stomach/M": -1.26,
+  "Multiple myeloma/F": 0.77,
+  "Multiple myeloma/M": 0.59,
+  "Oral cavity & pharynx/F": 0.13,
+  "Oral cavity & pharynx/M": -1.41,
+  "Kidney/F": 0.08,
+  "Kidney/M": 0.81,
+  "Non-Hodgkin lymphoma/F": -0.43,
+  "Non-Hodgkin lymphoma/M": -0.54,
+  "Prostate/M": 1.13,
+  "Thyroid/F": 2.36,
+  "Thyroid/M": 2.81,
+  "Oesophagus/F": -0.1,
+  "Oesophagus/M": -1.74
+ },
+ "cohort_peaks": {
+  "All cancers/F": {
+   "cohort": 1988,
+   "rr": 1.04
+  },
+  "All cancers/M": {
+   "cohort": 1993,
+   "rr": 1.04
+  },
+  "Bladder/M": {
+   "cohort": 1943,
+   "rr": 1.12
+  },
+  "Skin melanoma/F": {
+   "cohort": 1973,
+   "rr": 1.86
+  },
+  "Skin melanoma/M": {
+   "cohort": 1973,
+   "rr": 1.74
+  },
+  "Liver/M": {
+   "cohort": 1953,
+   "rr": 1.17
+  },
+  "Lung/F": {
+   "cohort": 1953,
+   "rr": 1.94
+  },
+  "Lung/M": {
+   "cohort": 1953,
+   "rr": 1.29
+  },
+  "Non-Hodgkin lymphoma/F": {
+   "cohort": 1953,
+   "rr": 1.09
+  },
+  "Non-Hodgkin lymphoma/M": {
+   "cohort": 1958,
+   "rr": 1.15
+  },
+  "Oesophagus/M": {
+   "cohort": 1953,
+   "rr": 1.41
+  }
+ },
+ "holdout": {
+  "n": 84,
+  "incidence_median_pct": 2.51,
+  "mortality_median_pct": 2.98,
+  "incidence_share_negative": 0.38
+ },
+ "projection_2028_32_pct": {
+  "All cancers/F": 3.4,
+  "All cancers/M": -2.4,
+  "Other sites/F": 9.5,
+  "Other sites/M": -12.6,
+  "Anus/F": 10.3,
+  "Pancreas/F": 18.3,
+  "Pancreas/M": 15.2,
+  "Soft tissue/F": 3.6,
+  "Soft tissue/M": 2.0,
+  "Breast/F": 9.0,
+  "Pleural mesothelioma/M": -12.1,
+  "Colorectum/F": 8.3,
+  "Colorectum/M": -2.1,
+  "Small intestine/M": 22.4,
+  "Ovary/F": -12.8,
+  "Gallbladder/F": -10.2,
+  "Gallbladder/M": 7.4,
+  "Cervix uteri/F": -23.7,
+  "Corpus uteri/F": -8.7,
+  "Brain & CNS/F": 3.6,
+  "Brain & CNS/M": -0.4,
+  "Bladder/F": -2.8,
+  "Bladder/M": -10.3,
+  "Skin melanoma/F": 7.8,
+  "Skin melanoma/M": 14.7,
+  "Testis/M": 4.7,
+  "Hodgkin lymphoma/F": 9.4,
+  "Hodgkin lymphoma/M": 7.8,
+  "Larynx/M": -30.2,
+  "Liver/F": 18.0,
+  "Liver/M": -2.4,
+  "Leukaemia/F": -4.6,
+  "Leukaemia/M": -4.1,
+  "Lung/F": -4.0,
+  "Lung/M": -21.4,
+  "Stomach/F": 7.5,
+  "Stomach/M": 6.8,
+  "Multiple myeloma/F": 8.3,
+  "Multiple myeloma/M": 5.9,
+  "Oral cavity & pharynx/F": -1.0,
+  "Oral cavity & pharynx/M": -16.8,
+  "Kidney/F": 3.8,
+  "Kidney/M": 9.9,
+  "Non-Hodgkin lymphoma/F": -5.2,
+  "Non-Hodgkin lymphoma/M": -6.0,
+  "Prostate/M": 6.4,
+  "Thyroid/F": 18.9,
+  "Thyroid/M": 31.2,
+  "Oesophagus/F": -0.8,
+  "Oesophagus/M": -19.1
+ }
+}
