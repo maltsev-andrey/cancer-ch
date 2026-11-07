@@ -178,7 +178,8 @@ def fit_one(site, sex, indicator, args):
     drift_yr = (np.exp(post.drift.values.ravel() / 5) - 1) * 100         # % per year
     out = {"site": site, "sex": sex, "indicator": indicator, "is_holdout": args.holdout,
            "n_cells": int(len(train)), "cases_per_year": float(g.cases_per_year.sum() / 6),
-           "chains": args.chains, "samples": args.samples, "seconds": round(secs, 1),
+           "chains": args.chains, "samples": args.samples, "warmup": args.warmup,
+           "target_accept": args.target_accept, "seed": args.seed, "seconds": round(secs, 1),
            "device": jax.devices()[0].platform, "divergences": div, "rhat_max": round(rhat_max, 3),
            "rhat_by_var": rhat_by_var, "ess_bulk_min": diag["ess_bulk_min"],
            "ess_tail_min": diag["ess_tail_min"], "ess_by_var": diag["ess_by_var"],
@@ -349,9 +350,9 @@ def main():
     ap.add_argument("--all", action="store_true"); ap.add_argument("--list", action="store_true")
     ap.add_argument("--index", type=int)
     ap.add_argument("--holdout", action="store_true"); ap.add_argument("--future", type=int, default=0)
-    ap.add_argument("--chains", type=int, default=4); ap.add_argument("--warmup", type=int, default=1000)
-    ap.add_argument("--samples", type=int, default=1000); ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--target-accept", dest="target_accept", type=float, default=0.9)
+    ap.add_argument("--chains", type=int, default=4); ap.add_argument("--warmup", type=int, default=2000)
+    ap.add_argument("--samples", type=int, default=2000); ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--target-accept", dest="target_accept", type=float, default=0.99)
     args = ap.parse_args()
 
     fl = fit_list()
