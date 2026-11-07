@@ -257,6 +257,10 @@ GitHub issues:
 
 ## Documentation
 
+[`docs/research_findings.md`](docs/research_findings.md) lists every finding with its evidence
+class: observed in the data, estimated by the model, projected, hypothesised, or rejected, each
+with the fit or stage that reproduces it.
+
 `docs/wiki/` is a ten-chapter write-up: data sources, audit, ingest, mortality parsing, the ICD
 bridge, harmonisation, the model, results, and a chapter of lessons learned about the BFS APIs
 and file formats (the 1 January population stock tabulated by end-of-year age is the one to
