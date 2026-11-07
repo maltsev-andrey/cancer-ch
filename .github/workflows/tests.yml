@@ -1,0 +1,30 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas pyarrow pyyaml numpy "jax[cpu]" numpyro arviz pytest
+      - run: python -m py_compile pipeline/*.py scripts/*.py
+      - run: bash scripts/sanitize_check.sh
+      - run: pytest
+
+  synthetic:
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas pyarrow pyyaml numpy "jax[cpu]" numpyro arviz pytest
+      - run: pytest -m slow -o addopts="" tests/test_synthetic_recovery.py

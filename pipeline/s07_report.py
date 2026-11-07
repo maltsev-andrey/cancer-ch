@@ -95,7 +95,12 @@ def rebuild_index():
     idx["drift_lo"] = idx.net_drift_pct_per_year.str[0]
     idx["drift"] = idx.net_drift_pct_per_year.str[1]
     idx["drift_hi"] = idx.net_drift_pct_per_year.str[2]
-    idx["converged"] = (idx.rhat_max < 1.05) & (idx.divergences <= 10)
+    # new summaries carry the full gate (rhat, ESS, BFMI); old ones fall back to rhat + divergences
+    legacy = (idx.rhat_max < 1.05) & (idx.divergences <= 10)
+    idx["converged"] = idx["converged"].fillna(legacy).astype(bool) if "converged" in idx else legacy
+    for c in ("ess_bulk_min", "ess_tail_min", "bfmi_min"):
+        if c not in idx:
+            idx[c] = np.nan
     idx.to_parquet(MOD / "index.parquet", index=False)
     return idx
 
@@ -280,7 +285,8 @@ def main():
             print(f"  FAILED: {type(e).__name__}: {e}")
     (ASSETS / "sweep_summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False))
 
-    bad = idx[~idx.converged][["site", "sex", "indicator", "is_holdout", "rhat_max", "divergences"]]
+    bad = idx[~idx.converged][["site", "sex", "indicator", "is_holdout", "rhat_max", "divergences",
+                               "ess_bulk_min", "ess_tail_min", "bfmi_min"]]
     md = [f"# s07 checks", "", f"- fits: {len(idx)} (full {len(full)}, holdout {len(hold)})",
           f"- converged (rhat<1.05, div<=10): {int(idx.converged.sum())}",
           f"- not converged: {len(bad)}", bad.to_markdown(index=False) if len(bad) else "",

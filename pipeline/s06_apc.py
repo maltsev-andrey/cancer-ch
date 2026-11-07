@@ -79,25 +79,35 @@ def load_cells(site, sex, indicator, holdout=False):
 
 
 # ============================================================ model =========
+def rw2_curve(d2, n, scale):
+    """Second-order random walk from its second differences d2 (length n-2), first two
+    values pinned at 0. The double cumsum of n iid N(0,1) has amplitude ~ n^1.5, so it is
+    normalised: `scale` is the prior SD of the curve itself, whatever n is."""
+    import jax.numpy as jnp
+    inc = jnp.concatenate([jnp.zeros(2), d2])
+    return jnp.cumsum(jnp.cumsum(inc)) * scale / (n ** 1.5)
+
+
+def detrend(x, n_obs):
+    """Remove the OLS line fitted on the first n_obs points from all points, so that the
+    curve has zero mean and zero slope on the observed range and the linear part lives
+    only in `drift`."""
+    import jax.numpy as jnp
+    t = jnp.arange(x.shape[0], dtype=jnp.float32)
+    t_obs, x_obs = t[:n_obs], x[:n_obs]
+    tm, xm = t_obs.mean(), x_obs.mean()
+    slope = ((t_obs - tm) * (x_obs - xm)).sum() / ((t_obs - tm) ** 2).sum()
+    return x - xm - slope * (t - tm)
+
+
 def build_model():
     import jax.numpy as jnp
     import numpyro
     import numpyro.distributions as dist
 
     def rw2(name, n, scale):
-        """Second-order random walk, non-centred. The double cumsum of n iid N(0,1) has
-        amplitude ~ n^1.5, so it is normalised: `scale` is the prior SD of the curve itself."""
         d2 = numpyro.sample(f"{name}_d2", dist.Normal(0, 1).expand([max(n - 2, 0)]))
-        inc = jnp.concatenate([jnp.zeros(2), d2])
-        return jnp.cumsum(jnp.cumsum(inc)) * scale / (n ** 1.5)
-
-    def detrend(x, n_obs):
-        """Remove the OLS line fitted on the first n_obs points from all points."""
-        t = jnp.arange(x.shape[0], dtype=jnp.float32)
-        t_obs, x_obs = t[:n_obs], x[:n_obs]
-        tm, xm = t_obs.mean(), x_obs.mean()
-        slope = ((t_obs - tm) * (x_obs - xm)).sum() / ((t_obs - tm) ** 2).sum()
-        return x - xm - slope * (t - tm)
+        return rw2_curve(d2, n, scale)
 
     def model(a_idx, p_idx, c_idx, log_py, y, A, P, C, n_future):
         Pf, Cf = P + n_future, C + n_future
@@ -155,14 +165,13 @@ def fit_one(site, sex, indicator, args):
                 chain_method="vectorized" if jax.devices()[0].platform == "gpu" else "parallel",
                 progress_bar=False)
     t0 = datetime.now()
-    mcmc.run(jax.random.PRNGKey(args.seed), **data)
+    mcmc.run(jax.random.PRNGKey(args.seed), extra_fields=("energy", "diverging", "num_steps"), **data)
     secs = (datetime.now() - t0).total_seconds()
     idata = az.from_numpyro(mcmc)
     smry = az.summary(idata, var_names=["drift", "s_period", "s_cohort", "s_eps"])
     div = int(idata.sample_stats.diverging.sum())
-    rh = az.rhat(idata, var_names=["alpha", "beta", "gamma", "drift", "s_period", "s_cohort", "s_eps"])
-    rhat_by_var = {v: round(float(np.nanmax(np.asarray(rh[v]))), 3) for v in rh.data_vars}
-    rhat_max = max(rhat_by_var.values())
+    diag = diagnostics(idata)
+    rhat_by_var, rhat_max = diag["rhat_by_var"], diag["rhat_max"]
 
     post = idata.posterior
     rate = post.rate_grid.values.reshape(-1, A, P + args.future)          # draws x A x P'
@@ -171,7 +180,10 @@ def fit_one(site, sex, indicator, args):
            "n_cells": int(len(train)), "cases_per_year": float(g.cases_per_year.sum() / 6),
            "chains": args.chains, "samples": args.samples, "seconds": round(secs, 1),
            "device": jax.devices()[0].platform, "divergences": div, "rhat_max": round(rhat_max, 3),
-           "rhat_by_var": rhat_by_var,
+           "rhat_by_var": rhat_by_var, "ess_bulk_min": diag["ess_bulk_min"],
+           "ess_tail_min": diag["ess_tail_min"], "ess_by_var": diag["ess_by_var"],
+           "bfmi_min": diag["bfmi_min"], "tree_depth_max": diag["tree_depth_max"],
+           "converged": converged(div, rhat_max, diag["ess_bulk_min"], diag["ess_tail_min"], diag["bfmi_min"]),
            "net_drift_pct_per_year": [float(np.percentile(drift_yr, q)) for q in (2.5, 50, 97.5)],
            "period_curv_sd": float(post.beta.std(("chain", "draw")).mean()),
            "cohort_curv_sd": float(post.gamma.std(("chain", "draw")).mean())}
@@ -211,11 +223,49 @@ def fit_one(site, sex, indicator, args):
     (d / "summary.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
     smry.to_csv(d / "hyper_summary.csv")
     plot_fit(g, rate, post, A, P, args.future, site, sex, indicator, d / "fit.png")
-    flag = "OK" if div <= 10 and rhat_max < 1.05 else "CHECK"
+    flag = "OK" if out["converged"] else "CHECK"
     log(f"{flag} {site}/{sex}/{indicator}: {secs:.0f}s on {out['device']}, div={div}, "
-        f"rhat={rhat_max:.3f}, drift={out['net_drift_pct_per_year'][1]:+.2f}%/yr"
+        f"rhat={rhat_max:.3f}, ess={diag['ess_bulk_min']:.0f}/{diag['ess_tail_min']:.0f}, "
+        f"bfmi={diag['bfmi_min']:.2f}, drift={out['net_drift_pct_per_year'][1]:+.2f}%/yr"
         + (f", holdout ASR err {out['holdout_check']['asr_error_pct']:+.1f}%" if args.holdout else ""))
     return out
+
+
+DIAG_VARS = ["alpha", "beta", "gamma", "drift", "s_period", "s_cohort", "s_eps"]
+ESS_MIN = 400          # Vehtari et al. 2021: 100 per chain, 4 chains
+BFMI_MIN = 0.3         # Betancourt 2016: below 0.3 the energy transitions are too sticky
+RHAT_MAX = 1.01        # was 1.05; the sweep rerun shows what this costs
+
+
+def diagnostics(idata):
+    """R-hat, ESS (bulk, tail), BFMI per chain and max tree depth, per variable and overall.
+    All reductions are nanmax/nanmin over the parameter vectors."""
+    import arviz as az
+    rh = az.rhat(idata, var_names=DIAG_VARS)
+    eb = az.ess(idata, var_names=DIAG_VARS, method="bulk")
+    et = az.ess(idata, var_names=DIAG_VARS, method="tail")
+    f = lambda ds, fn: {v: round(float(fn(np.asarray(ds[v]))), 3) for v in ds.data_vars}
+    rhat_by_var, ess_b, ess_t = f(rh, np.nanmax), f(eb, np.nanmin), f(et, np.nanmin)
+    ss = idata.sample_stats
+    # energy is only there if mcmc.run() asked for it in extra_fields; without it BFMI is
+    # unknown and the gate treats it as failed (nan compares False)
+    if "energy" in ss:
+        b = az.bfmi(idata)                       # ndarray (arviz<1) or DataTree (arviz>=1)
+        bfmi = np.asarray(b["energy"].values if hasattr(b, "children") else b, dtype=float)
+    else:
+        bfmi = np.array([np.nan])
+    depth = ss["tree_depth"] if "tree_depth" in ss else None   # from_numpyro derives it from num_steps
+    return {"rhat_by_var": rhat_by_var, "rhat_max": max(rhat_by_var.values()),
+            "ess_by_var": {v: [ess_b[v], ess_t[v]] for v in ess_b},
+            "ess_bulk_min": min(ess_b.values()), "ess_tail_min": min(ess_t.values()),
+            "bfmi_by_chain": [round(float(x), 3) for x in bfmi],
+            "bfmi_min": round(float(np.min(bfmi)), 3),
+            "tree_depth_max": int(depth.max()) if depth is not None else None}
+
+
+def converged(div, rhat_max, ess_bulk_min, ess_tail_min, bfmi_min):
+    return bool(div <= 10 and rhat_max < RHAT_MAX and ess_bulk_min >= ESS_MIN
+                and ess_tail_min >= ESS_MIN and bfmi_min >= BFMI_MIN)
 
 
 ESP = np.array([8000, 7000, 7000, 7000, 7000, 7000, 7000, 7000, 7000, 7000, 7000, 6000, 5000,
