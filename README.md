@@ -23,7 +23,7 @@
 | **Generations** | The 1950s cohort peaks at every tobacco- and alcohol-related site at once; melanoma has its own generation, born in the 1970s |
 | **By 2030** | Thyroid +19–31%, pancreas +15–18%, melanoma +8–15%; larynx −30%, cervix −24%, lung (men) −21% |
 | **Data quality** | Our crude and age-standardised rates reproduce the registry's to the decimal; the ICD-8 → ICD-10 coding break is bridged with factors confirmed by two independent methods |
-| **No cantons, no causation** | Public data has no cantonal cancer figures; correlating aggregated rates with pollution or smoking would be an ecological fallacy, so this project does not |
+| **No cantons, no causation** | The BFS API has no cantonal incidence (cantonal registries publish it as PDF reports, most only since 2020); correlating aggregated rates with pollution or smoking would be an ecological fallacy, so this project does not |
 
 ## Contents
 
@@ -43,6 +43,7 @@
 - [Running it](#running-it)
 - [GPU vs CPU](#gpu-vs-cpu)
 - [Limitations](#limitations)
+- [Future work](#future-work)
 - [Documentation](#documentation)
 - [Sources and licence](#sources-and-licence)
 
@@ -133,8 +134,11 @@ kills the most. M:I = deaths / new cases, a crude survival proxy.*
 | Mortality APC tables, BFS | `su-d-14.03.04.01.11–20` | period × age, with ICD-corrected series | 1970–2009 |
 | Population, BFS STATPOP / balance | `px-x-0102010000_102`, `px-x-0102020000_104` | canton × sex × single age | 1981–2025 |
 
-What the public data does **not** have: cancer incidence or cause-specific mortality by
-canton, annual incidence by site (only 5-year means), fine age groups in annual mortality.
+What the BFS API does **not** have: cancer incidence by canton, annual incidence by site (only
+5-year means), fine age groups in annual mortality. Cantonal incidence does exist outside the
+API: the cantonal registries publish annual reports with site × sex tables of counts and
+European-standard rates (Zürich since 1980, Zug since 2011, most other cantons only since the
+2020 Cancer Registration Act), as PDF. See [Future work](#future-work).
 
 ## Method
 
@@ -215,7 +219,8 @@ on the list.
 
 ## Limitations
 
-- **No cantons.** Switzerland and two language regions are all the public data supports.
+- **No cantons.** Switzerland and two language regions are all the BFS API supports; cantonal
+  registry reports exist but are PDF tables with uneven depth (see Future work).
 - **Five-year periods** for incidence: the model sees six points in time.
 - **Identifiability.** Only drift and curvatures are reported; a "peak cohort" is a generation
   above the trend line, not necessarily the one with the highest absolute rate.
@@ -223,6 +228,25 @@ on the list.
 - **Structural breaks**: ICD-8 → ICD-10 (1995, bridged), the Cancer Registration Act (2020, no
   measurable incidence jump) and COVID-19 (2020–21, likely behind the small holdout shift).
 - This is a statistical description of registry data, not medical advice and not a causal study.
+
+## Future work
+
+Version 1.1 is about checkability, not more models (tracked as GitHub issues):
+
+1. **Unit tests** for the population convention (1 January vs 31 December stock), ESP1976
+   weights and ASR, the RW2 + detrend parameterisation, and synthetic-data recovery, run in CI.
+2. **Full MCMC diagnostics**: ESS bulk and tail per parameter, BFMI per chain, rank plots,
+   with the convergence gate tightened accordingly.
+3. **Rolling-origin backtesting**: refit with training ending 2007, 2012 and 2017, score the
+   one- and two-period-ahead projections, not just the single 2018–2022 holdout.
+4. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
+   varied ×0.3 and ×3.
+5. **`research_findings.md`** separating what is observed in the data, what the model
+   estimates, and what is projected or hypothesised.
+6. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
+   supports a BYM2 spatial model without touching PDFs. Cantonal incidence from the registry
+   reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
+   comparability (C44, in situ, standard population) is checked.
 
 ## Documentation
 
