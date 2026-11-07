@@ -25,10 +25,20 @@ curvatures and the age curve, which are identifiable, and shows cohort effects a
 risk versus the linear trend**. A cohort "peak" is therefore a generation that lies above the
 trend line, not necessarily the generation with the highest absolute rate.
 
-NUTS (NumPyro), 4 chains, 1000 warm-up + 1000 samples; fits with divergences were rerun at
-`target_accept` 0.97–0.99. Result: **211 of 214 fits converged** (r̂ < 1.05, ≤ 10 divergences);
-the three remaining holdout fits have r̂ 1.00 and 18–29 divergences and are excluded from the
-holdout summary only.
+NUTS (NumPyro), 4 chains, 2000 warm-up + 2000 samples, `target_accept` 0.99. Every fit is
+checked on ≤ 10 divergences, r̂ < 1.01 for every parameter, bulk and tail ESS ≥ 400 and
+BFMI ≥ 0.3 on every chain (`diagnostics()` in s06, written to `summary.json`). Result:
+**214 of 214 fits converged** in one sweep with seed 1; one holdout fit (breast, women,
+r̂ 1.015) was rerun with seed 2, which is recorded in its summary.
+
+Version 1.0 used 1000 + 1000 draws at `target_accept` 0.9 with a gate of r̂ < 1.05. Moving to
+the stricter gate sent 48 fits back: about a third on r̂ alone (1.010–1.015, an estimation
+noise at 1000 draws), a third on tail ESS of the random-walk scales, and a third on
+divergences, which clustered on the highest-count sites (prostate, breast, colorectum, liver).
+That pattern suggested a non-centred funnel, but it was not one: raising `target_accept` from
+0.95 to 0.99 removed the divergences completely, which a true funnel does not do. The step
+size was simply too large for the sharply curved posterior of a site with 6000 cases a year.
+No estimate moved by more than 0.1 %/yr between the two sweeps.
 
 ## What it took to make it sample
 
@@ -45,8 +55,8 @@ cohort bump (1968): the model recovers −1.48%/yr (−1.60…−1.35) and the b
 
 ## Validation
 
-- **Holdout:** fit on 1993–2017, predict 2018–2022. Over 84 converged fits with ≥100 cases per
-  year the median error is **+2.5% for incidence and +3.0% for mortality**: the 2018–2022 rates
+- **Holdout:** fit on 1993–2017, predict 2018–2022. Over 87 fits with ≥100 cases per
+  year the median error is **+2.5% for incidence and +2.9% for mortality**: the 2018–2022 rates
   came in slightly *below* the extrapolated trend for both indicators.
 - This also answers the registration-act question. If the Cancer Registration Act (2020) had
   inflated registered incidence, incidence would sit systematically *above* trend while

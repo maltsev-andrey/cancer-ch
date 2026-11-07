@@ -5,7 +5,8 @@
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
 ![NumPyro](https://img.shields.io/badge/model-Bayesian%20APC%20%C2%B7%20NumPyro-6f42c1)
 ![Data: BFS / NKRS](https://img.shields.io/badge/data-BFS%20%2F%20NKRS%20open%20data-d7301f)
-![Fits](https://img.shields.io/badge/fits-214%20%C2%B7%20211%20converged-2a78d6)
+![Fits](https://img.shields.io/badge/fits-214%20%C2%B7%20214%20converged-2a78d6)
+![tests](https://github.com/maltsev-andrey/cancer-ch/actions/workflows/tests.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
 ![Lung cancer cohort effects, men and women](assets/fig10_lung_cohorts.png)
@@ -17,11 +18,11 @@
 | | |
 |---|---|
 | **Scope** | All 36 cancer sites × sex × incidence and mortality, Switzerland and two language regions, 1993–2022 (incidence) and 1970–2024 (mortality) |
-| **Model** | Bayesian age-period-cohort model (NumPyro / NUTS) per site and sex: 214 fits, 211 converged, every one validated out-of-sample |
+| **Model** | Bayesian age-period-cohort model (NumPyro / NUTS) per site and sex: 214 fits, all 214 pass R-hat < 1.01, ESS ≥ 400 and BFMI ≥ 0.3, every one validated out-of-sample |
 | **Headline** | Cancer mortality fell 46% (men) and 39% (women) since the 1980s; incidence is flat (−0.2% / +0.4% per year) |
 | **Lung** | Men −2.3%/yr; women no trend at all, their rise is a pure cohort effect peaking for women born 1953–57 and now turning down |
 | **Generations** | The 1950s cohort peaks at every tobacco- and alcohol-related site at once; melanoma has its own generation, born in the 1970s |
-| **By 2030** | Thyroid +19–31%, pancreas +15–18%, melanoma +8–15%; larynx −30%, cervix −24%, lung (men) −21% |
+| **By 2030** | Thyroid +17–31%, pancreas +15–18%, melanoma +8–15%; larynx −30%, cervix −24%, lung (men) −21% |
 | **Data quality** | Our crude and age-standardised rates reproduce the registry's to the decimal; the ICD-8 → ICD-10 coding break is bridged with factors confirmed by two independent methods |
 | **No cantons, no causation** | The BFS API has no cantonal incidence (cantonal registries publish it as PDF reports, most only since 2020); correlating aggregated rates with pollution or smoking would be an ecological fallacy, so this project does not |
 
@@ -83,7 +84,7 @@ Men peaked at about 260 per 100,000 in the mid-1980s and stand at 131 in 2024 (�
 with 95% intervals, sites with ≥100 cases per year.*
 
 Rising: thyroid (+2.8% men / +2.4% women per year), small intestine, colorectum (+1.7 / +1.6),
-pancreas, prostate, breast. Falling: larynx (−3.2), cervix (−2.9), lung in men (−2.3),
+pancreas, prostate, breast. Falling: larynx (−3.2), cervix (−2.8), lung in men (−2.3),
 oesophagus, bladder, stomach. Colorectal, breast and prostate incidence rise while their
 mortality falls at −1.9, −2.5 and −3.0% per year: the signature of screening.
 
@@ -114,7 +115,7 @@ the fitted drift and curvatures. Intervals widen with the horizon and with small
 ![Holdout](assets/fig09_holdout_krg.png)
 
 *Every model refitted on 1993–2017 and asked to predict 2018–2022. Median error +2.5%
-(incidence) and +3.0% (mortality): rates came in slightly below trend. There is no
+(incidence) and +2.9% (mortality): rates came in slightly below trend. There is no
 incidence-only jump that the 2020 Cancer Registration Act would have produced.*
 
 ### Frequency is not lethality
@@ -153,8 +154,11 @@ y_ap ~ Poisson(PY_ap · exp(η_ap))
 - β, γ: second-order random walks with the linear trend removed, so only **curvature** is
   reported. The split of a linear trend between period and cohort is not identifiable from APC
   data (Holford 1983; Riebler & Held 2017), and the model does not pretend otherwise;
-- ε: extra-Poisson variation. NUTS, 4 chains, 1000 + 1000 draws; divergent fits rerun at higher
-  acceptance. Projections extrapolate the random walks.
+- ε: extra-Poisson variation. NUTS, 4 chains, 2000 warm-up + 2000 draws, target acceptance
+  0.99. A fit counts as converged only if it has ≤ 10 divergences, R-hat < 1.01 on every
+  parameter, bulk and tail ESS ≥ 400 and BFMI ≥ 0.3 on every chain; all 214 do (one holdout
+  fit needed a second seed, recorded in its `summary.json`). Projections extrapolate the
+  random walks.
 
 Before modelling, mortality 1970–1994 is converted to an ICD-10 equivalent with per-cause
 bridge factors (colorectal 0.85, prostate 0.86, breast 0.89, all cancers 0.93, lung 0.96)
@@ -170,7 +174,8 @@ estimated two independent ways that agree to 0.001.
 | Two independent BFS cause-of-death tables, 1990–2024 | identical for every cancer row |
 | Cause-of-death vs cancer-registry mortality ASR | all cancers −0.4%, lung −0.3%, stomach +0.4%, prostate −0.7% |
 | Model on synthetic data with known drift −1.5%/yr and a cohort bump at 1968 | recovers −1.48%/yr (−1.60…−1.35) and 1968 |
-| Holdout 2018–2022, 84 fits | median error +2.5% incidence, +3.0% mortality |
+| Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.5% incidence, +2.9% mortality |
+| Unit tests (`pytest`, run in CI) | population convention, ESP1976 and ASR, RW2 normalisation, detrending, model forward pass, convergence gate |
 
 ## Pipeline
 
@@ -200,7 +205,8 @@ python pipeline/s01_ingest.py --plan && python pipeline/s01_ingest.py
 python pipeline/s02_parse_mortality.py
 python pipeline/s03_parse_apc.py
 python pipeline/s04_harmonise.py
-python pipeline/s06_apc.py --site "Lunge, Bronchien, Luftröhre" --sex F --future 2   # one fit, ~30 s
+pytest                                  # 21 unit tests, seconds; pytest -m slow adds synthetic recovery
+python pipeline/s06_apc.py --site "Lunge, Bronchien, Luftröhre" --sex F --future 2   # one fit, ~25 s on 4 cores
 python pipeline/s06_apc.py --list       # all 107 qualifying fits; run them with --index N
 python pipeline/s07_report.py
 ```
@@ -213,7 +219,7 @@ with a bare 403; the ingest splits queries automatically.
 
 The same fit took 694 s on a Tesla P100 and about 20 s on four CPU cores: a model with 108
 data cells gives NUTS nothing to parallelise, and kernel-launch overhead dominates. The sweep
-ran on a 20-core CPU host, four fits in parallel, 214 fits in about 45 minutes. A batched
+ran on a 20-core CPU host, four fits in parallel, 214 fits in about 90 minutes. A batched
 model fitting all sites in one vectorised program is the way to make the GPU pay off, and is
 on the list.
 
@@ -231,19 +237,20 @@ on the list.
 
 ## Future work
 
-Version 1.1 is about checkability, not more models (tracked as GitHub issues):
+Version 1.1 is about checkability, not more models. Done: unit tests for the population
+convention, ESP1976 and ASR, the RW2 + detrend parameterisation and synthetic-data recovery,
+run in CI; full MCMC diagnostics (ESS bulk and tail, BFMI, tree depth) with the gate
+tightened to R-hat < 1.01. Tightening it sent 48 of 214 fits back; 2000 draws at target
+acceptance 0.99 brought every one through without touching the model. Open, tracked as
+GitHub issues:
 
-1. **Unit tests** for the population convention (1 January vs 31 December stock), ESP1976
-   weights and ASR, the RW2 + detrend parameterisation, and synthetic-data recovery, run in CI.
-2. **Full MCMC diagnostics**: ESS bulk and tail per parameter, BFMI per chain, rank plots,
-   with the convergence gate tightened accordingly.
-3. **Rolling-origin backtesting**: refit with training ending 2007, 2012 and 2017, score the
+1. **Rolling-origin backtesting**: refit with training ending 2007, 2012 and 2017, score the
    one- and two-period-ahead projections, not just the single 2018–2022 holdout.
-4. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
+2. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
    varied ×0.3 and ×3.
-5. **`research_findings.md`** separating what is observed in the data, what the model
+3. **`research_findings.md`** separating what is observed in the data, what the model
    estimates, and what is projected or hypothesised.
-6. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
+4. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
    supports a BYM2 spatial model without touching PDFs. Cantonal incidence from the registry
    reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
    comparability (C44, in situ, standard population) is checked.
