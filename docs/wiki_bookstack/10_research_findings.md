@@ -94,7 +94,7 @@ fewer deaths. `fig07`.
 oesophagus −1.74 (M), bladder −1.51 (M), stomach −1.25 (M). `fig07`.
 
 **B9. No measurable registration jump in 2020.** Fits on 1993–2017 predict 2018–2022 with a
-median error of +2.5% (incidence) and +2.9% (mortality) over 87 fits with ≥100 cases/yr; 36%
+median error of +2.4% (incidence) and +2.7% (mortality) over 87 fits with ≥100 cases/yr; 36%
 of incidence errors are negative. Both indicators came in slightly *below* trend. An incidence
 inflation from the Cancer Registration Act would show as incidence above trend with mortality
 on trend. `fig09`, `sweep_summary.holdout`.
@@ -164,7 +164,7 @@ consumption. The data show the cohort; they do not show the exposure.
 **D2.** The 1973–1977 melanoma cohort reflects childhood UV exposure in the 1980s (package
 holidays, no sun-protection culture yet). Same caveat.
 
-**D3.** The below-trend 2018–2022 (+2.5 / +2.9% at horizon 1, and from every earlier origin,
+**D3.** The below-trend 2018–2022 (+2.4 / +2.7% at horizon 1, and from every earlier origin,
 B13) is the COVID-19 years: fewer diagnoses in 2020–21 and, for mortality, competing deaths.
 The backtest rules out the alternative (a model that always overshoots), it does not identify
 the cause. The next NKRS release (2023–27 period) can: if 2018–22 was a dip, the next period

@@ -56,7 +56,7 @@ cohort bump (1968): the model recovers −1.48%/yr (−1.60…−1.35) and the b
 ## Validation
 
 - **Holdout:** fit on 1993–2017, predict 2018–2022. Over 87 fits with ≥100 cases per
-  year the median error is **+2.5% for incidence and +2.9% for mortality**: the 2018–2022 rates
+  year the median error is **+2.4% for incidence and +2.7% for mortality**: the 2018–2022 rates
   came in slightly *below* the extrapolated trend for both indicators.
 - **Rolling-origin backtest** (`s06 --train-until 2007|2012|2017`, report in `s08_backtest`):
   the same fit repeated with the training window ending in 2007 (three periods), 2012 (four)

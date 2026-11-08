@@ -114,8 +114,8 @@ the fitted drift and curvatures. Intervals widen with the horizon and with small
 
 ![Holdout](assets/fig09_holdout_krg.png)
 
-*Every model refitted on 1993–2017 and asked to predict 2018–2022. Median error +2.5%
-(incidence) and +2.9% (mortality): rates came in slightly below trend. There is no
+*Every model refitted on 1993–2017 and asked to predict 2018–2022. Median error +2.4%
+(incidence) and +2.7% (mortality): rates came in slightly below trend. There is no
 incidence-only jump that the 2020 Cancer Registration Act would have produced.*
 
 ![Rolling-origin backtest](assets/fig12_backtest.png)
@@ -183,7 +183,7 @@ estimated two independent ways that agree to 0.001.
 | Two independent BFS cause-of-death tables, 1990–2024 | identical for every cancer row |
 | Cause-of-death vs cancer-registry mortality ASR | all cancers −0.4%, lung −0.3%, stomach +0.4%, prostate −0.7% |
 | Model on synthetic data with known drift −1.5%/yr and a cohort bump at 1968 | recovers −1.48%/yr (−1.60…−1.35) and 1968 |
-| Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.5% incidence, +2.9% mortality |
+| Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.4% incidence, +2.7% mortality |
 | Rolling-origin backtest, origins 2007/2012/2017, 321 fits | periods before 2018 unbiased (−2.5…0%); 2018–2022 below trend from every origin (+0.7…+2.7%); MAD 5% at h1, 8% at h2, 12–15% at h3 |
 | Unit tests (`pytest`, run in CI) | population convention, ESP1976 and ASR, RW2 normalisation, detrending, model forward pass, convergence gate |
 

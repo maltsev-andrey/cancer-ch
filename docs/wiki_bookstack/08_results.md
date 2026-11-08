@@ -95,7 +95,7 @@ no new coding change and no new exposure. Intervals widen with the horizon and w
 
 ![Holdout](fig09_holdout_krg.png)
 
-Fits on 1993–2017 predict 2018–2022 with a median error of +2.5% (incidence) and +2.9%
+Fits on 1993–2017 predict 2018–2022 with a median error of +2.4% (incidence) and +2.7%
 (mortality) over 87 fits. Both indicators came in slightly below trend; there is no
 incidence-only jump that the Cancer Registration Act (2020) would have produced.
 
