@@ -268,9 +268,12 @@ Also done: rolling-origin backtesting at origins 2007, 2012 and 2017 (`s06 --tra
 check by age, period and cell size (`s09_ppc`); and prior sensitivity on four key fits
 (`s10_prior_sensitivity`). Open:
 
-1. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
-   supports a BYM2 spatial model without touching PDFs. Cantonal incidence from the registry
-   reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
+1. **Cantonal mortality.** Cause-of-death by canton is not in the BFS API or table catalogue
+   after 1972 (an earlier version of this README said otherwise; the audit says no); it is
+   available from BFS on request, and has been requested. In the meantime a BYM2 spatial
+   model is being built and dry-run on what is open, all-cause deaths by canton, age and sex
+   1969–2025, so the cancer tables drop in when they arrive. Cantonal incidence from the
+   registry reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
    comparability (C44, in situ, standard population) is checked.
 
 ## Documentation

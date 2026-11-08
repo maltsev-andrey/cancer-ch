@@ -47,7 +47,12 @@ cases/yr are within 1% (crude) and 2% (ASR). `s04 validate_rates`.
 
 **A7. The public data has no cantonal incidence.** The BFS API carries Switzerland and two
 language regions only. Cantonal registries publish incidence as PDF reports (Zürich since 1980,
-Zug since 2011, most others since 2020). Cantonal cause-of-death *is* in the API. `s00`.
+Zug since 2011, most others since 2020). Cantonal cause-of-death is **not** open either:
+neither PxWeb nor the BFS table catalogue carries deaths by cause and canton after 1972
+(the catalogue has 1901–1968 and 1959/62–1969/72 only). What is open by canton is all-cause
+deaths by 5-year age and sex, 1969–2025 (BEVNAT). Cause-specific cantonal tables are
+available from the BFS health section on request, which is how the cantonal registries get
+theirs. `s00`, DAM catalogue.
 
 ---
 
@@ -220,8 +225,10 @@ would change that; the per-site model does not.
    the cohort curvature; prostate's projection is the prior-sensitive one.
 3. ~~Posterior predictive by age~~: answered, B15. Coverage 0.89–0.98 at every age, no
    overfitting of the oldest cells; intervals slightly conservative.
-4. **Cantonal mortality.** Cause-of-death by canton 1990–2024 is in the API; a BYM2 spatial
-   model would show whether the national trends are uniform across cantons.
+4. **Cantonal mortality.** Cause-of-death by canton is not open (A7); requested from BFS.
+   Meanwhile the BYM2 spatial model is built and dry-run on all-cause cantonal mortality
+   (BEVNAT), so the cancer tables drop in when they arrive. Would show whether the
+   national trends are uniform across cantons.
 
 ---
 
