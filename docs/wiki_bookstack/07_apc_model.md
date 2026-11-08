@@ -60,17 +60,18 @@ cohort bump (1968): the model recovers −1.48%/yr (−1.60…−1.35) and the b
   came in slightly *below* the extrapolated trend for both indicators.
 - **Rolling-origin backtest** (`s06 --train-until 2007|2012|2017`, report in `s08_backtest`):
   the same fit repeated with the training window ending in 2007 (three periods), 2012 (four)
-  and 2017 (five), every later period scored at horizon 1, 2, 3. 321 fits, 317 converged at
-  the first seed, the other four at seed 2.
+  and 2017 (five), every later period scored at horizon 1, 2, 3. 321 fits, 320 converged (three
+  of them at seed 2); female lung incidence trained to 2012 keeps 34–38 divergences at both
+  seeds and is excluded: four periods cannot separate the 1950s cohort from a drift.
 
   | Target period | Incidence, origin 2007 / 2012 / 2017 | Mortality |
   |---|---|---|
   | 2008–2012 | −0.3 | −1.3 |
   | 2013–2017 | +0.0 / −1.6 | −1.9 / −2.5 |
-  | 2018–2022 | −0.2 / +1.2 / **+2.4** | +2.6 / +1.8 / **+3.4** |
+  | 2018–2022 | −0.2 / +0.7 / **+2.4** | +2.6 / +2.0 / **+2.7** |
 
   Medians of the ASR error (predicted / observed − 1) over fits with ≥100 cases per year,
-  n = 36–50 per cell. Two things follow. The positive shift is a property of the period
+  n = 37–50 per cell. Two things follow. The positive shift is a property of the period
   2018–2022, not of the model: the same models predict 2008–2017 with no bias or a slightly
   negative one. And error grows with horizon in a regular way: median absolute deviation
   4–6% one period ahead, 7–8% at two, 12–15% at three; the share of fits within ±10% falls

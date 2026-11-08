@@ -4,9 +4,10 @@ real data tree is read or written."""
 import importlib.util
 import os
 import sys
-import numpyro
-numpyro.set_host_device_count(4)
 from pathlib import Path
+
+import numpyro
+numpyro.set_host_device_count(4)        # before jax initialises: parallel chains in the slow test
 
 import pytest
 

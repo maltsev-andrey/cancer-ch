@@ -115,7 +115,7 @@ target acceptance 0.9) and v1.1 (4 × 2000, 0.99, stricter gate) no drift moved 
 **B13. The 2018–2022 shift is period-specific, not a model bias.** Rolling-origin backtest:
 models trained to 2007 and 2012 predict 2008–2017 with medians −2.5…0% (observed at or
 slightly above trend); every prediction of 2018–2022, from origins 2007, 2012 and 2017, is
-positive: incidence −0.2 / +1.2 / +2.4, mortality +2.6 / +1.8 / +3.4 (n = 36–50 per cell).
+positive: incidence −0.2 / +0.7 / +2.4, mortality +2.6 / +2.0 / +2.7 (n = 37–50 per cell).
 `s08_backtest`, `fig12`, `backtest_summary.json`.
 
 **B14. Projection error doubles per five-year horizon.** Median absolute deviation of the ASR

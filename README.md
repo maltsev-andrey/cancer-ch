@@ -122,7 +122,7 @@ incidence-only jump that the 2020 Cancer Registration Act would have produced.*
 
 *The same test at three origins. Models trained to 2007 and to 2012 predict the periods before
 2018 with no bias (medians −2.5…0%); every prediction of 2018–2022, from whichever origin,
-comes in positive (observed below trend), most clearly for mortality (+1.8…+3.4%). The shift
+comes in positive (observed below trend), most clearly for mortality (+2.0…+2.7%). The shift
 belongs to those years, not to the model. Error grows with horizon: median absolute deviation
 5% one period ahead, 8% at two, 12–15% at three, which is the yardstick for the 2030
 projection below.*
@@ -184,7 +184,7 @@ estimated two independent ways that agree to 0.001.
 | Cause-of-death vs cancer-registry mortality ASR | all cancers −0.4%, lung −0.3%, stomach +0.4%, prostate −0.7% |
 | Model on synthetic data with known drift −1.5%/yr and a cohort bump at 1968 | recovers −1.48%/yr (−1.60…−1.35) and 1968 |
 | Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.5% incidence, +2.9% mortality |
-| Rolling-origin backtest, origins 2007/2012/2017, 321 fits | periods before 2018 unbiased (−2.5…0%); 2018–2022 below trend from every origin (+1.2…+3.4%); MAD 5% at h1, 8% at h2, 12–15% at h3 |
+| Rolling-origin backtest, origins 2007/2012/2017, 321 fits | periods before 2018 unbiased (−2.5…0%); 2018–2022 below trend from every origin (+0.7…+2.7%); MAD 5% at h1, 8% at h2, 12–15% at h3 |
 | Unit tests (`pytest`, run in CI) | population convention, ESP1976 and ASR, RW2 normalisation, detrending, model forward pass, convergence gate |
 
 ## Pipeline
@@ -260,7 +260,7 @@ acceptance 0.99 brought every one through without touching the model. Open, trac
 GitHub issues:
 
 Also done: rolling-origin backtesting at origins 2007, 2012 and 2017 (`s06 --train-until`,
-`s08_backtest`), 321 fits, 317 converged at the first seed; and `docs/research_findings.md`.
+`s08_backtest`), 321 fits, 320 converged; and `docs/research_findings.md`.
 
 1. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
    varied ×0.3 and ×3.

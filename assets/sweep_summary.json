@@ -1,5 +1,5 @@
 {
- "n_fits": 214,
+ "n_fits": 428,
  "n_full": 107,
  "n_holdout": 107,
  "converged_full": 107,
@@ -108,8 +108,8 @@
  },
  "holdout": {
   "n": 87,
-  "incidence_median_pct": 2.54,
-  "mortality_median_pct": 2.93,
+  "incidence_median_pct": 2.39,
+  "mortality_median_pct": 2.71,
   "incidence_share_negative": 0.36
  },
  "projection_2028_32_pct": {
