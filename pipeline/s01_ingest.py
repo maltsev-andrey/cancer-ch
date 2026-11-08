@@ -147,12 +147,13 @@ def jsonstat_to_long(js):
 
 def pull_cube(s, cube, dry=False):
     cid = cube["id"]
+    name = cube.get("name", cid)            # output file stem; lets two entries share one cube id
     url = cube_url(cid)
     meta = s.get(url, timeout=TIMEOUT).json()
     plan = resolve(meta, cube.get("select") or {})
     parts = chunks(plan, PX["max_cells"])
     dims = ", ".join(f"{t}[{len(v)}]" for t, v in plan.values())
-    log(f"{cid} ({cube.get('role')}): {n_cells(plan):,} cells in {len(parts)} request(s)")
+    log(f"{name} ({cube.get('role')}): {n_cells(plan):,} cells in {len(parts)} request(s)")
     log(f"    {dims}")
     if dry:
         return None
@@ -174,12 +175,12 @@ def pull_cube(s, cube, dry=False):
             log(f"    part {i}/{len(parts)}: {len(frames[-1]):,} rows")
     df = pd.concat(frames, ignore_index=True)
     OUT_PX.mkdir(parents=True, exist_ok=True)
-    out = OUT_PX / f"{cid}.parquet"
+    out = OUT_PX / f"{name}.parquet"
     df.to_parquet(out, index=False)
-    (OUT_PX / f"{cid}.meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
+    (OUT_PX / f"{name}.meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
     miss = df["value"].isna().mean() * 100
     log(f"    -> {out.name}: {len(df):,} rows, {miss:.1f}% missing values")
-    manifest({"source": "pxweb", "id": cid, "role": cube.get("role"), "url": url,
+    manifest({"source": "pxweb", "id": cid, "name": name, "role": cube.get("role"), "url": url,
               "title": meta.get("title"), "rows": len(df), "missing_pct": round(miss, 2),
               "file": str(out), "sha256": hashlib.sha256(out.read_bytes()).hexdigest()})
     return df
@@ -235,7 +236,7 @@ def main():
     s = session()
     errors = []
     for cube in PX["cubes"]:
-        if only and cube["id"] != only:
+        if only and only not in (cube["id"], cube.get("name")):
             continue
         try:
             pull_cube(s, cube, dry)

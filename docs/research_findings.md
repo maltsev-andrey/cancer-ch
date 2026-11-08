@@ -54,6 +54,14 @@ deaths by 5-year age and sex, 1969–2025 (BEVNAT). Cause-specific cantonal tabl
 available from the BFS health section on request, which is how the cantonal registries get
 theirs. `s00`, DAM catalogue.
 
+**A8. Open cantonal data reproduce the known geography of Swiss mortality.** All-cause deaths
+by canton (BEVNAT), indirectly standardised by sex and 5-year period, 1990–2024: Ticino,
+Genève and Zug below the national rate throughout (Ticino 10–14% below for women in every
+period); Fribourg and Valais above for men in the 1990s–2000s, Fribourg converging after 2010;
+Jura, Neuchâtel, Basel-Stadt, Glarus above in recent periods. Between-canton SD of log RR
+0.05–0.07 (men), 0.045–0.055 (women). This is a pipeline check against Obsan's published
+cantonal indicators, not a cancer result. `s12_spatial`, `fig16`.
+
 ---
 
 ## B. Model estimates
@@ -143,6 +151,14 @@ signal into the drift. Prostate drift stays inside its baseline interval but its
 143 → 151–156 (±8%), the most prior-sensitive projection in the set. `s10_prior_sensitivity`,
 `fig14`.
 
+**B17. The BYM2 machinery is validated and waiting for cause-specific data.** 26 cantons, 57
+land-border edges (canonical list and swisstopo geometry agree exactly), ICAR scaling factor
+0.368. Synthetic field on the real graph recovered with corr 1.00 and 95% coverage 1.00; 14
+all-cause fits converged at the first seed. **ρ, the spatial share of between-canton variation,
+is not identifiable from 26 areas** (posterior 0.03–0.98 whatever the truth): relative risks by
+canton are sound, statements about spatial clustering are not available at this resolution.
+`s11_geo`, `s12_spatial`, `fig17`.
+
 ---
 
 ## C. Projections, 2018–2022 → 2028–2032
@@ -209,6 +225,11 @@ is down by 39–46% (A1). The rise in *counts* is ageing and population growth.
 four CPU cores. 108 data cells give NUTS nothing to parallelise. A batched all-sites model
 would change that; the per-site model does not.
 
+**R5. Any map in this project placed next to a map of smoking, altitude, income or language.**
+Cantonal relative risks are aggregates; correlating them with a cantonal exposure is the
+ecological fallacy, whatever the correlation. Nothing in A8 or any future cause-specific map
+supports a statement about causes.
+
 ---
 
 ## Open questions (tracked as v1.1 issues)
@@ -219,10 +240,9 @@ would change that; the per-site model does not.
    the cohort curvature; prostate's projection is the prior-sensitive one.
 3. ~~Posterior predictive by age~~: answered, B15. Coverage 0.89–0.98 at every age, no
    overfitting of the oldest cells; intervals slightly conservative.
-4. **Cantonal mortality.** Cause-of-death by canton is not open (A7); requested from BFS.
-   Meanwhile the BYM2 spatial model is built and dry-run on all-cause cantonal mortality
-   (BEVNAT), so the cancer tables drop in when they arrive. Would show whether the
-   national trends are uniform across cantons.
+4. **Cantonal cancer mortality.** Machinery done and dry-run (B17, A8); blocked on the BFS
+   cause-of-death tables (A7, requested). When they arrive: BYM2 per site, then a joint
+   space-time model to ask whether the national trends are uniform across cantons.
 
 ---
 

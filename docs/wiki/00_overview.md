@@ -48,6 +48,8 @@ the female rise is a pure cohort effect peaking for women born 1953–1957
 | 07 | [APC model (s06)](07_apc_model.md) | Bayesian age-period-cohort model, 214 fits, GPU vs CPU |
 | 08 | [Results](08_results.md) | trends, cohorts, projections to 2030 |
 | 09 | [Lessons learned](09_lessons_learned.md) | traps in the BFS APIs and file formats |
+| 10 | [Research findings](10_research_findings.md) | every finding by evidence class: observed, estimated, projected, hypothesis, rejected |
+| 11 | [Cantonal model (s11, s12)](11_cantonal_model.md) | canton graph, BYM2 spatial model, dry run on all-cause mortality; waiting for BFS cause-of-death tables |
 
 ## Pipeline
 

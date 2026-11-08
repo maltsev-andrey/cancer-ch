@@ -202,6 +202,8 @@ s07_report            index of all fits, cohort peaks, sweep figures
 s08_backtest          rolling-origin backtest report (origins 2007, 2012, 2017)
 s09_ppc               posterior predictive check by age, period, cell size
 s10_prior_sensitivity baseline vs tight / wide / curvature-favouring priors
+s11_geo               26 cantons, land-border graph (57 edges), ICAR scaling, swisstopo geometry check
+s12_spatial           BYM2 spatial model per sex x period; dry run on all-cause cantonal mortality
 ```
 
 Every stage is idempotent, writes its checks to `data/audit/sNN_checks.md` and exits non-zero
@@ -242,8 +244,10 @@ on the list.
 
 ## Limitations
 
-- **No cantons.** Switzerland and two language regions are all the BFS API supports; cantonal
-  registry reports exist but are PDF tables with uneven depth (see Future work).
+- **No cantons for cancer yet.** Switzerland and two language regions are all the BFS API
+  supports for cancer; cantonal cause-of-death tables are requested from BFS, cantonal registry
+  reports are PDF with uneven depth (see Future work). With 26 areas, a spatial model identifies
+  cantonal relative risks but not the share of variation that is spatial.
 - **Five-year periods** for incidence: the model sees six points in time.
 - **Identifiability.** Only drift and curvatures are reported; a "peak cohort" is a generation
   above the trend line, not necessarily the one with the highest absolute rate.
@@ -268,13 +272,15 @@ Also done: rolling-origin backtesting at origins 2007, 2012 and 2017 (`s06 --tra
 check by age, period and cell size (`s09_ppc`); and prior sensitivity on four key fits
 (`s10_prior_sensitivity`). Open:
 
-1. **Cantonal mortality.** Cause-of-death by canton is not in the BFS API or table catalogue
-   after 1972 (an earlier version of this README said otherwise; the audit says no); it is
-   available from BFS on request, and has been requested. In the meantime a BYM2 spatial
-   model is being built and dry-run on what is open, all-cause deaths by canton, age and sex
-   1969–2025, so the cancer tables drop in when they arrive. Cantonal incidence from the
-   registry reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
-   comparability (C44, in situ, standard population) is checked.
+1. **Cantonal cancer mortality.** Cause-of-death by canton is not in the BFS API or table
+   catalogue after 1972 (an earlier version of this README said otherwise; the audit says no);
+   it has been requested from BFS. The spatial side is done and waiting: a 26-canton
+   land-border graph that matches the swisstopo geometry edge for edge, and a BYM2 model
+   (`s11_geo`, `s12_spatial`) dry-run on the one open cantonal dataset, all-cause deaths by
+   canton, age and sex. It reproduces the known geography (Ticino, Genève, Zug low; Fribourg
+   and Valais high for men in the 1990s; Jura, Neuchâtel, Basel-Stadt high recently) and
+   shows that the spatial-share parameter ρ cannot be identified from 26 areas. Cantonal
+   incidence from the registry reports would come after.
 
 ## Documentation
 

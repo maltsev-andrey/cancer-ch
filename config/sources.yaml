@@ -34,6 +34,15 @@ pxweb:
     - id: px-x-0102030000_101
       role: pop_ch_1860              # CH x sex x age, 1860-2025
 
+    # ---- all-cause deaths by canton (BEVNAT), dry-run data for the spatial model (s12) -----
+    - id: px-x-0102020000_104
+      name: px-x-0102020000_104_deaths   # same cube, deaths component only, own output file
+      role: deaths_canton_1981       # canton x sex x single age x year, 1981-2025
+      select:
+        Staatsangehörigkeit (Kategorie): "Total"
+        Geschlecht: "^(Mann|Frau)$"
+        Demografische Komponente: "^Todesfälle"
+
 dam:
   api: https://dam-api.bfs.admin.ch/hub/api/dam/assets
   language: de

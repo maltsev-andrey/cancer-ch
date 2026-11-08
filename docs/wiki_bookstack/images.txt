@@ -10,3 +10,6 @@ fig11_projection_2030.png
 fig12_backtest.png
 fig13_ppc.png
 fig14_prior_sensitivity.png
+fig16_cantonal_rr_allcause_F.png
+fig16_cantonal_rr_allcause_M.png
+fig17_spatial_params_allcause.png

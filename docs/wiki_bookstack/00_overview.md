@@ -27,7 +27,7 @@ the female rise is a pure cohort effect peaking for women born 1953–1957
 ## Scope and non-goals
 
 - **Switzerland and two language regions only.** No public source publishes cancer incidence or
-  cause-specific mortality by canton (see [01 Data sources](01_data_sources.md)).
+  cause-specific mortality by canton (see [01 Data sources](/books/cancer-ch/page/01-data-sources)).
 - **Aggregated public data only.** No individual records. The BFS order form for microdata
   exists but is out of scope for a public repository.
 - **No causal claims from correlations.** An early idea to correlate cantonal PM2.5 or smoking with
@@ -39,15 +39,17 @@ the female rise is a pure cohort effect peaking for women born 1953–1957
 | # | Chapter | Content |
 |---|---|---|
 | 00 | Overview | this page |
-| 01 | [Data sources](01_data_sources.md) | what exists publicly, what does not |
-| 02 | [Data audit (s00)](02_data_audit.md) | how the sources were found and measured |
-| 03 | [Ingest (s01)](03_ingest.md) | PxWeb cubes and DAM tables into Parquet |
-| 04 | [Mortality parsing (s02)](04_mortality_parsing.md) | two BFS cause-of-death tables, cross-checked |
-| 05 | [ICD-8 → ICD-10 bridge (s03)](05_icd_bridge.md) | the 1995 coding break, measured two ways |
-| 06 | [Harmonisation (s04)](06_harmonisation.md) | denominators, language regions, validation against NKRS |
+| 01 | [Data sources](/books/cancer-ch/page/01-data-sources) | what exists publicly, what does not |
+| 02 | [Data audit (s00)](/books/cancer-ch/page/02-data-audit-s00) | how the sources were found and measured |
+| 03 | [Ingest (s01)](/books/cancer-ch/page/03-ingest-s01) | PxWeb cubes and DAM tables into Parquet |
+| 04 | [Mortality parsing (s02)](/books/cancer-ch/page/04-mortality-parsing-s02) | two BFS cause-of-death tables, cross-checked |
+| 05 | [ICD-8 → ICD-10 bridge (s03)](/books/cancer-ch/page/05-icd-8-icd-10-bridge-s03) | the 1995 coding break, measured two ways |
+| 06 | [Harmonisation (s04)](/books/cancer-ch/page/06-harmonisation-s04) | denominators, language regions, validation against NKRS |
 | 07 | [APC model (s06)](/books/cancer-ch/page/07-age-period-cohort-model-s06) | Bayesian age-period-cohort model, 214 fits, GPU vs CPU |
 | 08 | [Results](/books/cancer-ch/page/08-results) | trends, cohorts, projections to 2030 |
-| 09 | [Lessons learned](09_lessons_learned.md) | traps in the BFS APIs and file formats |
+| 09 | [Lessons learned](/books/cancer-ch/page/09-lessons-learned) | traps in the BFS APIs and file formats |
+| 10 | [Research findings](/books/cancer-ch/page/10-research-findings) | every finding by evidence class: observed, estimated, projected, hypothesis, rejected |
+| 11 | [Cantonal model (s11, s12)](/books/cancer-ch/page/11-cantonal-model-s11-s12) | canton graph, BYM2 spatial model, dry run on all-cause mortality; waiting for BFS cause-of-death tables |
 
 ## Pipeline
 
