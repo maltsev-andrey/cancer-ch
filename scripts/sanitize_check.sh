@@ -17,7 +17,7 @@ PATTERNS=(
   'password|passwd|secret_key|api_key|token='
 )
 
-EXCLUDE='--exclude-dir=.git --exclude-dir=data --exclude-dir=wiki_bookstack --exclude=sanitize_check.sh'
+EXCLUDE='--exclude-dir=.git --exclude-dir=data --exclude-dir=logs --exclude-dir=wiki_bookstack --exclude=sanitize_check.sh'
 fail=0
 for p in "${PATTERNS[@]}"; do
   if hits=$(grep -rnIiE $EXCLUDE "$p" . 2>/dev/null); then

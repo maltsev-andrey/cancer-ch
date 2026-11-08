@@ -37,6 +37,7 @@
   - [Projection to 2030](#projection-to-2030)
   - [Out-of-sample check](#out-of-sample-check)
   - [Frequency is not lethality](#frequency-is-not-lethality)
+- [Cantonal model](#cantonal-model)
 - [Data](#data)
 - [Method](#method)
 - [Validation](#validation)
@@ -134,6 +135,42 @@ projection below.*
 *New cases and deaths per year, 2018–2022. Prostate and breast are the most frequent; lung
 kills the most. M:I = deaths / new cases, a crude survival proxy.*
 
+## Cantonal model
+
+The cantonal question, whether the national trends are uniform across the 26 cantons, needs
+cause-of-death tables by canton that BFS does not publish openly; they have been requested
+(`docs/bfs_request_2026-11.md`). The spatial model is built and validated on the one cantonal
+dataset that is open, all-cause deaths by canton, sex and age. **The maps below are therefore
+about all-cause mortality, as a check that the machinery reproduces known geography; they are
+not a cancer result.** When the cancer tables arrive they run through the same code.
+
+![Men, all-cause mortality by canton](assets/fig16_cantonal_rr_allcause_M.png)
+
+*Men. BYM2 relative risk after indirect age standardisation, per 5-year period, internal
+standard (RR averages to 1 within each map). Labelled cantons have a posterior probability of
+RR above or below 1 of more than 95%. Fribourg and Valais above the national rate through the
+2000s, Fribourg converging after 2010; Ticino, Genève, Zug and Basel-Landschaft below
+throughout; Jura, Neuchâtel, Basel-Stadt and Glarus above in the recent periods.*
+
+![Women, all-cause mortality by canton](assets/fig16_cantonal_rr_allcause_F.png)
+
+*Women. One signal dominates: Ticino 10–14% below the national rate in every period since
+1990, Genève and Vaud below; St. Gallen, Appenzell Ausserrhoden, Glarus and Solothurn above
+in the recent periods. Between-canton variation is smaller than for men.*
+
+![BYM2 hyperparameters](assets/fig17_spatial_params_allcause.png)
+
+*The two BYM2 hyperparameters over time. σ, the total between-canton spread of log RR, is
+0.05–0.07 for men and rising, 0.045–0.055 for women and flat: cantons sit within about ±10% of
+the national rate. ρ, the share of that spread that is spatially structured, has a posterior
+interval covering almost the whole 0–1 range in every period: with 26 areas the model cannot
+tell a smooth field from an independent one. Cantonal relative risks are identified; claims
+about spatial clustering are not available at this resolution.*
+
+The canton graph (57 land borders, hard-coded by BFS number) matches the swisstopo
+swissBOUNDARIES3D geometry edge for edge; a synthetic field on the real graph is recovered
+with correlation 1.00 and 95% coverage; all 14 fits converge at the first seed.
+
 ## Data
 
 | Source | ID | Grid | Years |
@@ -143,6 +180,8 @@ kills the most. M:I = deaths / new cases, a crude survival proxy.*
 | Deaths by cause, BFS | `je-d-14.03.04.01.01–04` | cause × sex (× broad age) | 1970–2024 |
 | Mortality APC tables, BFS | `su-d-14.03.04.01.11–20` | period × age, with ICD-corrected series | 1970–2009 |
 | Population, BFS STATPOP / balance | `px-x-0102010000_102`, `px-x-0102020000_104` | canton × sex × single age | 1981–2025 |
+| All-cause deaths by canton, BFS BEVNAT | `px-x-0102020000_104`, component *Todesfall* | canton × sex × single age × year | 1981–2025 |
+| Canton geometry, swisstopo | swissBOUNDARIES3D, `tlm_kantonsgebiet` | 26 polygons, LV95 | current |
 
 What the BFS API does **not** have: cancer incidence by canton, annual incidence by site (only
 5-year means), fine age groups in annual mortality. Cantonal incidence does exist outside the
