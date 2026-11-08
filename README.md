@@ -185,6 +185,8 @@ estimated two independent ways that agree to 0.001.
 | Model on synthetic data with known drift −1.5%/yr and a cohort bump at 1968 | recovers −1.48%/yr (−1.60…−1.35) and 1968 |
 | Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.4% incidence, +2.7% mortality |
 | Rolling-origin backtest, origins 2007/2012/2017, 321 fits | periods before 2018 unbiased (−2.5…0%); 2018–2022 below trend from every origin (+0.7…+2.7%); MAD 5% at h1, 8% at h2, 12–15% at h3 |
+| Posterior predictive check, 107 fits, 11,556 cells | 90% interval covers 0.94 (incidence) / 0.96 (mortality); 0.89–0.98 at every age, 85+ at 0.96 / 0.94, no overfitting of the oldest cells |
+| Prior sensitivity, 4 fits × 3 priors | 10/12 pass; robust to ×3 wider priors, cohort peaks collapse only under a prior ×0.3 tighter than the data; prostate's 2030 projection moves ±8% |
 | Unit tests (`pytest`, run in CI) | population convention, ESP1976 and ASR, RW2 normalisation, detrending, model forward pass, convergence gate |
 
 ## Pipeline
@@ -198,6 +200,8 @@ s04_harmonise         mid-year population, language regions, rates validated aga
 s06_apc               Bayesian APC per site × sex × indicator, full + holdout
 s07_report            index of all fits, cohort peaks, sweep figures
 s08_backtest          rolling-origin backtest report (origins 2007, 2012, 2017)
+s09_ppc               posterior predictive check by age, period, cell size
+s10_prior_sensitivity baseline vs tight / wide / curvature-favouring priors
 ```
 
 Every stage is idempotent, writes its checks to `data/audit/sNN_checks.md` and exits non-zero
@@ -260,11 +264,11 @@ acceptance 0.99 brought every one through without touching the model. Open, trac
 GitHub issues:
 
 Also done: rolling-origin backtesting at origins 2007, 2012 and 2017 (`s06 --train-until`,
-`s08_backtest`), 321 fits, 320 converged; and `docs/research_findings.md`.
+`s08_backtest`), 321 fits, 320 converged; `docs/research_findings.md`; a posterior predictive
+check by age, period and cell size (`s09_ppc`); and prior sensitivity on four key fits
+(`s10_prior_sensitivity`). Open:
 
-1. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
-   varied ×0.3 and ×3.
-2. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
+1. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
    supports a BYM2 spatial model without touching PDFs. Cantonal incidence from the registry
    reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
    comparability (C44, in situ, standard population) is checked.

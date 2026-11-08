@@ -87,6 +87,8 @@ def save(fig, name):
 def rebuild_index():
     rows = []
     for f in sorted(MOD.glob("*/summary.json")):
+        if "_prior-" in f.parent.name:               # prior-sensitivity variants live in s10
+            continue
         d = json.loads(f.read_text())
         d["dir"] = f.parent.name
         rows.append(d)

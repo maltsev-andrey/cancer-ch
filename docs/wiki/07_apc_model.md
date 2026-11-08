@@ -94,6 +94,41 @@ cohort bump (1968): the model recovers −1.48%/yr (−1.60…−1.35) and the b
   exception, not the rule. The more likely reading of the small positive medians is the
   COVID-19 dip in diagnoses in 2020–2021 and a mortality decline that keeps accelerating.
 
+## Posterior predictive check by age (s09)
+
+![PPC](../../assets/fig13_ppc.png)
+
+The holdout checks the interval in one period; this checks it in every cell of every full fit
+(107 fits, 11,556 cells). Coverage of the 90% predictive interval is 0.94 for incidence and
+0.96 for mortality; by age group it runs 0.89–0.98 with no group below the ±2 SE binomial band,
+and 85+ sits at 0.96 / 0.94, so the free age vector is not overfitting the oldest cells. The
+lowest coverage is at ages 30–39, exactly nominal. The PIT histogram is close to flat (KS
+0.03–0.04) with a deficit in the top decile, and the z-residuals have sd 0.90 / 0.82: the
+extra-Poisson term gives the interval a little more width than the data need. For projections
+that is the right side to err on. Part of the excess is also in-sample optimism, since the
+posterior has seen these cells.
+
+## Prior sensitivity (s10)
+
+![Prior sensitivity](../../assets/fig14_prior_sensitivity.png)
+
+Four fits (female lung and melanoma incidence, prostate, all cancers in men) refitted under
+three alternative priors: `tight` (all scales ×0.3), `wide` (×3) and `curvy` (drift ×0.3, RW
+×3, which pushes variation from the drift into the curvatures). `scripts/run_prior_sensitivity.sh`
+writes them to `<slug>_prior-<tag>` directories and a separate `index_prior.parquet`, so the main
+sweep is untouched.
+
+10 of 12 pass (drift median inside the baseline 95% interval, same or adjacent peak cohort).
+All-cancer drift moves by 0.02 %/yr at most. Under `wide` and `curvy`, lung and melanoma keep
+their peak cohorts and RR within 0.1–0.3 of baseline. The two failures are both `tight` on the
+two cohort-driven sites: with the RW scale prior at 0.15 the cohort RR collapses to 1.0 (lung)
+and 1.2 (melanoma) and the drift jumps to +1.25 and +1.31 %/yr. A prior that forbids
+curvature does not remove the signal, it relabels it as a trend, which is the same
+drift-versus-cohort trade-off the backtest shows for a three-period window. The cohort peaks are
+therefore a property of the data, not of the prior. Prostate is the one site whose projection
+is prior-sensitive: the drift stays inside its interval but the 2030 ASR moves from 143 to
+151–156, consistent with the wide interval it carries in the projection figure.
+
 ## GPU vs CPU
 
 The same lung-cancer fit took **694 s on the Tesla P100** (4 chains × 3000 draws) and

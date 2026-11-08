@@ -59,6 +59,8 @@ plt.rcParams.update({
 def load_backtests():
     rows = []
     for f in sorted(MOD.glob("*_holdout*/summary.json")):
+        if "_prior-" in f.parent.name:
+            continue
         d = json.loads(f.read_text())
         if "backtest" not in d:                       # pre-backtest holdout: single horizon
             if "holdout_check" in d:

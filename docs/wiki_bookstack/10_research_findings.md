@@ -125,6 +125,23 @@ cohort effect: trained to 2007, female lung incidence reads the cohort rise as +
 drift and overshoots 2018–2022 by 9%. The 2028–2032 projections (C) are horizon 2.
 `s08_backtest`.
 
+**B15. The predictive interval is honest at every age; if anything it is conservative.**
+Posterior predictive check over all 107 full fits, 11,556 cells: 90% interval coverage 0.94
+(incidence) and 0.96 (mortality); by age group 0.89–0.98 with no group below the binomial band,
+85+ at 0.96 / 0.94, the minimum at ages 30–39 (0.89); by period 0.92–0.98; by cell size
+0.92–0.98. PIT nearly flat (KS 0.03–0.04) with a deficit in the top decile; sd of z-residuals
+0.90 / 0.82. The free age vector does not overfit the oldest cells. The extra-Poisson term is
+slightly generous, so projection intervals err on the wide side. `s09_ppc`, `fig13`.
+
+**B16. The headline estimates survive ×3 wider priors and a curvature-favouring prior; they do
+not survive priors ×0.3 tighter than the data.** 4 fits × 3 variants: all-cancer drift (M) moves
+by at most 0.02 %/yr; female lung and melanoma keep peak cohort 1953–57 / 1973–77 and RR 1.9 /
+1.9–2.2 under `wide` and `curvy`. Under `tight` (RW scale 0.15) the cohort RR collapses to 1.0
+/ 1.2 and the drift jumps to +1.25 / +1.31: a prior that forbids curvature pushes the cohort
+signal into the drift. Prostate drift stays inside its baseline interval but its 2030 ASR moves
+143 → 151–156 (±8%), the most prior-sensitive projection in the set. `s10_prior_sensitivity`,
+`fig14`.
+
 ---
 
 ## C. Projections, 2018–2022 → 2028–2032
@@ -199,10 +216,10 @@ would change that; the per-site model does not.
 
 1. ~~Rolling-origin backtesting~~: answered, B13–B14. The shift is tied to 2018–2022 at
    every origin; it is the years, not the model.
-2. **Prior sensitivity.** Do drift and cohort RR hold when the random-walk and drift scales are
-   varied ×0.3 and ×3? Ten key sites.
-3. **Posterior predictive by age.** Is predictive coverage uniform across age groups, or is the
-   free age vector overfitting the oldest cells?
+2. ~~Prior sensitivity~~: answered, B16. Robust to loosening, not to a prior that forbids
+   the cohort curvature; prostate's projection is the prior-sensitive one.
+3. ~~Posterior predictive by age~~: answered, B15. Coverage 0.89–0.98 at every age, no
+   overfitting of the oldest cells; intervals slightly conservative.
 4. **Cantonal mortality.** Cause-of-death by canton 1990–2024 is in the API; a BYM2 spatial
    model would show whether the national trends are uniform across cantons.
 

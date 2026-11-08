@@ -114,7 +114,10 @@ def detrend(x, n_obs):
     return x - xm - slope * (t - tm)
 
 
-def build_model():
+def build_model(drift_sd=0.5, rw_sd=0.5, eps_sd=0.1):
+    """Prior scales: drift ~ N(0, drift_sd) per 5-y period; period and cohort RW2 curve SD ~
+    HalfNormal(rw_sd); extra-Poisson SD ~ HalfNormal(eps_sd). Defaults are the v1.1 priors;
+    s06 --drift-sd/--rw-sd/--eps-sd override them for the prior-sensitivity runs (s10)."""
     import jax.numpy as jnp
     import numpyro
     import numpyro.distributions as dist
@@ -135,16 +138,16 @@ def build_model():
         # with a weak prior: centred parameterisation, no hyperparameter to create a funnel.
         alpha = numpyro.sample("age_free", dist.Normal(-8.0, 5.0).expand([A]))
         # drift + detrended period and cohort curvatures
-        drift = numpyro.sample("drift", dist.Normal(0.0, 0.5))
-        s_per = numpyro.sample("s_period", dist.HalfNormal(0.5))
-        s_coh = numpyro.sample("s_cohort", dist.HalfNormal(0.5))
+        drift = numpyro.sample("drift", dist.Normal(0.0, drift_sd))
+        s_per = numpyro.sample("s_period", dist.HalfNormal(rw_sd))
+        s_coh = numpyro.sample("s_cohort", dist.HalfNormal(rw_sd))
         beta = detrend(rw2("period", Pf, s_per), n_obs)
         gamma = detrend(rw2("cohort", Cf, s_coh), C)
         numpyro.deterministic("alpha", alpha)
         numpyro.deterministic("beta", beta)
         numpyro.deterministic("gamma", gamma)
         # extra-Poisson variation on observed cells
-        s_eps = numpyro.sample("s_eps", dist.HalfNormal(0.1))
+        s_eps = numpyro.sample("s_eps", dist.HalfNormal(eps_sd))
         eps = numpyro.sample("eps", dist.Normal(0, 1).expand([a_idx.shape[0]])) * s_eps
         eta = (alpha[a_idx] + drift * (p_idx - (P - 1) / 2.0) + beta[p_idx] + gamma[c_idx] + eps)
         numpyro.deterministic("log_rate", eta)
@@ -178,7 +181,7 @@ def fit_one(site, sex, indicator, args):
                 y=jax.numpy.array(train.y.values), A=A, P=P, C=C, n_future=args.future,
                 n_obs=P if args.detrend_all else n_tr)
 
-    kernel = NUTS(build_model(), target_accept_prob=args.target_accept, max_tree_depth=10,
+    kernel = NUTS(build_model(args.drift_sd, args.rw_sd, args.eps_sd), target_accept_prob=args.target_accept, max_tree_depth=10,
                   init_strategy=init_to_median(num_samples=50))
     mcmc = MCMC(kernel, num_warmup=args.warmup, num_samples=args.samples, num_chains=args.chains,
                 chain_method="vectorized" if jax.devices()[0].platform == "gpu" else "parallel",
@@ -198,6 +201,7 @@ def fit_one(site, sex, indicator, args):
     out = {"site": site, "sex": sex, "indicator": indicator, "is_holdout": args.train_until is not None,
            "train_until": args.train_until or PERIOD_END[-1], "n_train_periods": n_tr,
            "detrend_all": bool(args.detrend_all),
+           "priors": {"drift_sd": args.drift_sd, "rw_sd": args.rw_sd, "eps_sd": args.eps_sd}, "tag": args.tag,
            "n_cells": int(len(train)), "cases_per_year": float(g.cases_per_year.sum() / 6),
            "chains": args.chains, "samples": args.samples, "warmup": args.warmup,
            "target_accept": args.target_accept, "seed": args.seed, "seconds": round(secs, 1),
@@ -246,6 +250,8 @@ def fit_one(site, sex, indicator, args):
     out["asr_fitted_by_period"] = {per: asr(fit_med[:, i]) for i, per in enumerate(PERIODS)}
 
     suffix = "" if args.train_until is None else ("_holdout" if args.train_until == 2017 else f"_holdout{args.train_until}")
+    if args.tag:
+        suffix += f"_prior-{args.tag}"                 # kept out of the main index by s07/s09
     d = OUT / (slug(site, sex, indicator) + suffix)
     d.mkdir(parents=True, exist_ok=True)
     idata.to_netcdf(d / "posterior.nc")
@@ -383,6 +389,10 @@ def main():
     ap.add_argument("--detrend-all", dest="detrend_all", action="store_true",
                     help="backtest only: detrend the period curvature over all P periods (pre-v1.1 "
                          "behaviour) instead of the observed ones; for A/B of sampler geometry")
+    ap.add_argument("--drift-sd", dest="drift_sd", type=float, default=0.5)
+    ap.add_argument("--rw-sd", dest="rw_sd", type=float, default=0.5)
+    ap.add_argument("--eps-sd", dest="eps_sd", type=float, default=0.1)
+    ap.add_argument("--tag", default="", help="suffix _prior-<tag> on the output dir; required when prior scales are changed")
     ap.add_argument("--train-until", dest="train_until", type=int, default=None,
                     help="rolling-origin backtest: last training period end year (2007, 2012, 2017)")
     ap.add_argument("--chains", type=int, default=4); ap.add_argument("--warmup", type=int, default=2000)
@@ -391,6 +401,8 @@ def main():
     args = ap.parse_args()
     if args.holdout and args.train_until is None:
         args.train_until = 2017
+    if (args.drift_sd, args.rw_sd, args.eps_sd) != (0.5, 0.5, 0.1) and not args.tag:
+        sys.exit("changed prior scales need --tag so the fit does not overwrite the baseline")
     if args.train_until is not None and args.future:
         sys.exit("--train-until and --future are exclusive: a backtest predicts the held-out periods")
 
@@ -421,7 +433,7 @@ def main():
         except Exception as e:
             log(f"FAILED {r.site}/{r.sex}/{r.indicator}: {type(e).__name__}: {e}")
     if results:
-        idx = OUT / "index.parquet"
+        idx = OUT / ("index_prior.parquet" if args.tag else "index.parquet")
         new = pd.json_normalize(results)
         if idx.exists():
             old = pd.read_parquet(idx)
