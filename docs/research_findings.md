@@ -108,6 +108,19 @@ cohort bump at 1968 it returns −1.48 (−1.60…−1.35) and 1968; run as `pyt
 target acceptance 0.9) and v1.1 (4 × 2000, 0.99, stricter gate) no drift moved by more than
 0.1 %/yr and no cohort peak moved. `docs/wiki/07_apc_model.md`.
 
+**B13. The 2018–2022 shift is period-specific, not a model bias.** Rolling-origin backtest:
+models trained to 2007 and 2012 predict 2008–2017 with medians −2.5…0% (observed at or
+slightly above trend); every prediction of 2018–2022, from origins 2007, 2012 and 2017, is
+positive: incidence −0.2 / +1.2 / +2.4, mortality +2.6 / +1.8 / +3.4 (n = 36–50 per cell).
+`s08_backtest`, `fig12`, `backtest_summary.json`.
+
+**B14. Projection error doubles per five-year horizon.** Median absolute deviation of the ASR
+error: 4–6% one period ahead, 7–8% at two, 12–15% at three; share of fits within ±10%:
+74–86% → 53–65% → 38–42%. A three-period training window cannot separate a trend from a
+cohort effect: trained to 2007, female lung incidence reads the cohort rise as +2.4%/yr
+drift and overshoots 2018–2022 by 9%. The 2028–2032 projections (C) are horizon 2.
+`s08_backtest`.
+
 ---
 
 ## C. Projections, 2018–2022 → 2028–2032
@@ -145,9 +158,11 @@ consumption. The data show the cohort; they do not show the exposure.
 **D2.** The 1973–1977 melanoma cohort reflects childhood UV exposure in the 1980s (package
 holidays, no sun-protection culture yet). Same caveat.
 
-**D3.** The slight below-trend holdout (+2.5 / +2.9%) is the COVID-19 years: fewer diagnoses in
-2020–21 and, for mortality, competing deaths. The next NKRS release (2023–27 period) can test
-this: if 2018–22 was a dip, the next period should come in above trend.
+**D3.** The below-trend 2018–2022 (+2.5 / +2.9% at horizon 1, and from every earlier origin,
+B13) is the COVID-19 years: fewer diagnoses in 2020–21 and, for mortality, competing deaths.
+The backtest rules out the alternative (a model that always overshoots), it does not identify
+the cause. The next NKRS release (2023–27 period) can: if 2018–22 was a dip, the next period
+should come in above trend.
 
 **D4.** Female liver incidence +1.7%/yr with projection +18% is worth a closer look at metabolic
 causes, since hepatitis C treatment and alcohol trends would predict the opposite. Not testable
@@ -176,8 +191,8 @@ would change that; the per-site model does not.
 
 ## Open questions (tracked as v1.1 issues)
 
-1. **Rolling-origin backtesting.** Does the +2.5% holdout shift appear at every origin
-   (2007, 2012, 2017) or only at 2017? Only the latter supports D3.
+1. ~~Rolling-origin backtesting~~: answered, B13–B14. The shift is tied to 2018–2022 at
+   every origin; it is the years, not the model.
 2. **Prior sensitivity.** Do drift and cohort RR hold when the random-walk and drift scales are
    varied ×0.3 and ×3? Ten key sites.
 3. **Posterior predictive by age.** Is predictive coverage uniform across age groups, or is the

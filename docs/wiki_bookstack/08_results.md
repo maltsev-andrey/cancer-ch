@@ -99,6 +99,16 @@ Fits on 1993–2017 predict 2018–2022 with a median error of +2.5% (incidence)
 (mortality) over 87 fits. Both indicators came in slightly below trend; there is no
 incidence-only jump that the Cancer Registration Act (2020) would have produced.
 
+![Rolling-origin backtest](fig12_backtest.png)
+
+Repeating the test from origins 2007 and 2012 (chapter 07) shows that the shift belongs to the
+years 2018–2022 and not to the model: predictions of 2008–2017 from the earlier origins are
+unbiased or slightly negative, while every prediction of 2018–2022 comes in positive, +1.2…+2.4%
+for incidence and +1.8…+3.4% for mortality. The size is modest and the mortality signal is the
+clearer one, which is what fewer diagnoses in 2020–2021 and competing causes of death would
+produce. The backtest also calibrates the projection in section 5: the median absolute error is
+about 8% two periods ahead, which is the horizon of the 2028–2032 figures.
+
 ## 7. Frequency is not lethality (2018–2022)
 
 ![Incidence vs mortality](fig05_incidence_vs_mortality.png)
@@ -113,6 +123,6 @@ incidence-only jump that the Cancer Registration Act (2020) would have produced.
 ## 8. Data-quality results
 
 - Two independent BFS cause-of-death tables agree for every cancer row, 1990–2024.
-- The ICD-8 → ICD-10 bridge is confirmed by two methods to 0.001 ([chapter 05](05_icd_bridge.md)).
-- Our crude and age-standardised rates reproduce NKRS to the decimal ([chapter 06](06_harmonisation.md)).
+- The ICD-8 → ICD-10 bridge is confirmed by two methods to 0.001 ([chapter 05](/books/cancer-ch/page/05-icd-8-icd-10-bridge-s03)).
+- Our crude and age-standardised rates reproduce NKRS to the decimal ([chapter 06](/books/cancer-ch/page/06-harmonisation-s04)).
 - Cause-of-death and cancer-registry mortality agree within 1% for all major sites.

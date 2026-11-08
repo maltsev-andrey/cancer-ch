@@ -30,5 +30,11 @@ for f in $(git ls-files 2>/dev/null | grep -E '\.(parquet|nc|log|xlsx|csv)$|^dat
   echo "== tracked data file: $f"; fail=1
 done
 
+# invariants that must not silently regress when a file is copied over (v1.1 sampler defaults)
+for inv in '"--warmup", type=int, default=2000' '"--samples", type=int, default=2000' \
+           'dest="target_accept", type=float, default=0.99' '"seed": args.seed'; do
+  grep -qF -- "$inv" pipeline/s06_apc.py || { echo "== missing invariant in pipeline/s06_apc.py: $inv"; fail=1; }
+done
+
 if [ "$fail" -eq 0 ]; then echo "sanitize: clean"; else echo "sanitize: FAILED"; fi
 exit $fail

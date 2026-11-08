@@ -118,6 +118,15 @@ the fitted drift and curvatures. Intervals widen with the horizon and with small
 (incidence) and +2.9% (mortality): rates came in slightly below trend. There is no
 incidence-only jump that the 2020 Cancer Registration Act would have produced.*
 
+![Rolling-origin backtest](assets/fig12_backtest.png)
+
+*The same test at three origins. Models trained to 2007 and to 2012 predict the periods before
+2018 with no bias (medians −2.5…0%); every prediction of 2018–2022, from whichever origin,
+comes in positive (observed below trend), most clearly for mortality (+1.8…+3.4%). The shift
+belongs to those years, not to the model. Error grows with horizon: median absolute deviation
+5% one period ahead, 8% at two, 12–15% at three, which is the yardstick for the 2030
+projection below.*
+
 ### Frequency is not lethality
 
 ![Incidence vs mortality](assets/fig05_incidence_vs_mortality.png)
@@ -175,6 +184,7 @@ estimated two independent ways that agree to 0.001.
 | Cause-of-death vs cancer-registry mortality ASR | all cancers −0.4%, lung −0.3%, stomach +0.4%, prostate −0.7% |
 | Model on synthetic data with known drift −1.5%/yr and a cohort bump at 1968 | recovers −1.48%/yr (−1.60…−1.35) and 1968 |
 | Holdout 2018–2022, 87 fits with ≥100 cases/yr | median error +2.5% incidence, +2.9% mortality |
+| Rolling-origin backtest, origins 2007/2012/2017, 321 fits | periods before 2018 unbiased (−2.5…0%); 2018–2022 below trend from every origin (+1.2…+3.4%); MAD 5% at h1, 8% at h2, 12–15% at h3 |
 | Unit tests (`pytest`, run in CI) | population convention, ESP1976 and ASR, RW2 normalisation, detrending, model forward pass, convergence gate |
 
 ## Pipeline
@@ -187,6 +197,7 @@ s03_parse_apc         BFS APC tables → ICD-8 → ICD-10 bridge factors
 s04_harmonise         mid-year population, language regions, rates validated against NKRS
 s06_apc               Bayesian APC per site × sex × indicator, full + holdout
 s07_report            index of all fits, cohort peaks, sweep figures
+s08_backtest          rolling-origin backtest report (origins 2007, 2012, 2017)
 ```
 
 Every stage is idempotent, writes its checks to `data/audit/sNN_checks.md` and exits non-zero
@@ -209,6 +220,8 @@ pytest                                  # 21 unit tests, seconds; pytest -m slow
 python pipeline/s06_apc.py --site "Lunge, Bronchien, Luftröhre" --sex F --future 2   # one fit, ~25 s on 4 cores
 python pipeline/s06_apc.py --list       # all 107 qualifying fits; run them with --index N
 python pipeline/s07_report.py
+python pipeline/s06_apc.py --index 0 --train-until 2007   # rolling-origin backtest, one origin
+python pipeline/s08_backtest.py
 ```
 
 Data lives in `../data` next to the repository (or wherever `CANCER_CH_DATA` points); nothing
@@ -230,7 +243,9 @@ on the list.
 - **Five-year periods** for incidence: the model sees six points in time.
 - **Identifiability.** Only drift and curvatures are reported; a "peak cohort" is a generation
   above the trend line, not necessarily the one with the highest absolute rate.
-- **Projections** assume no new screening programme, coding change or exposure.
+- **Projections** assume no new screening programme, coding change or exposure. The backtest
+  puts the two-period-ahead error at ±8% (median absolute deviation) for sites with ≥100
+  cases/yr; at three periods ahead a site with a strong cohort effect can miss by 10–20%.
 - **Structural breaks**: ICD-8 → ICD-10 (1995, bridged), the Cancer Registration Act (2020, no
   measurable incidence jump) and COVID-19 (2020–21, likely behind the small holdout shift).
 - This is a statistical description of registry data, not medical advice and not a causal study.
@@ -244,13 +259,12 @@ tightened to R-hat < 1.01. Tightening it sent 48 of 214 fits back; 2000 draws at
 acceptance 0.99 brought every one through without touching the model. Open, tracked as
 GitHub issues:
 
-1. **Rolling-origin backtesting**: refit with training ending 2007, 2012 and 2017, score the
-   one- and two-period-ahead projections, not just the single 2018–2022 holdout.
-2. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
+Also done: rolling-origin backtesting at origins 2007, 2012 and 2017 (`s06 --train-until`,
+`s08_backtest`), 321 fits, 317 converged at the first seed; and `docs/research_findings.md`.
+
+1. **Prior sensitivity** on ten key sites: drift, random-walk and extra-Poisson scales
    varied ×0.3 and ×3.
-3. **`research_findings.md`** separating what is observed in the data, what the model
-   estimates, and what is projected or hypothesised.
-4. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
+2. **Cantonal mortality.** Cause-of-death by canton is in the BFS API for 1990–2024 and
    supports a BYM2 spatial model without touching PDFs. Cantonal incidence from the registry
    reports (Zürich/Zug/Schaffhausen/Schwyz and the others) would come after, once
    comparability (C44, in situ, standard population) is checked.

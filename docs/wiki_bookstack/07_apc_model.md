@@ -58,6 +58,34 @@ cohort bump (1968): the model recovers −1.48%/yr (−1.60…−1.35) and the b
 - **Holdout:** fit on 1993–2017, predict 2018–2022. Over 87 fits with ≥100 cases per
   year the median error is **+2.5% for incidence and +2.9% for mortality**: the 2018–2022 rates
   came in slightly *below* the extrapolated trend for both indicators.
+- **Rolling-origin backtest** (`s06 --train-until 2007|2012|2017`, report in `s08_backtest`):
+  the same fit repeated with the training window ending in 2007 (three periods), 2012 (four)
+  and 2017 (five), every later period scored at horizon 1, 2, 3. 321 fits, 317 converged at
+  the first seed, the other four at seed 2.
+
+  | Target period | Incidence, origin 2007 / 2012 / 2017 | Mortality |
+  |---|---|---|
+  | 2008–2012 | −0.3 | −1.3 |
+  | 2013–2017 | +0.0 / −1.6 | −1.9 / −2.5 |
+  | 2018–2022 | −0.2 / +1.2 / **+2.4** | +2.6 / +1.8 / **+3.4** |
+
+  Medians of the ASR error (predicted / observed − 1) over fits with ≥100 cases per year,
+  n = 36–50 per cell. Two things follow. The positive shift is a property of the period
+  2018–2022, not of the model: the same models predict 2008–2017 with no bias or a slightly
+  negative one. And error grows with horizon in a regular way: median absolute deviation
+  4–6% one period ahead, 7–8% at two, 12–15% at three; the share of fits within ±10% falls
+  from 74–86% to 38–42%. Sites with a strong cohort effect are the worst at three periods:
+  trained to 2007, female lung incidence reads the cohort rise as a +2.4%/yr drift and
+  overshoots 2018–2022 by 9%, because three periods cannot separate a trend from a cohort
+  passing through the ages of risk.
+- Two implementation details of the backtest. In a backtest the period curvature is
+  detrended on the *observed* periods only, so the held-out periods are a pure RW2
+  extrapolation, exactly as in a projection; `--detrend-all` restores the earlier behaviour
+  (detrend over all six periods, held-out one included) for A/B purposes. On the v1.1
+  settings the two give the same holdout error to 0.2% and the same diagnostics. The second
+  detail is a lesson rather than a feature: the first backtest run silently went out at the
+  v1.0 sampler defaults because a patched `s06_apc.py` was copied over the server's version,
+  and 72 of 321 fits failed the gate. The sanitize gate now asserts the sampler defaults.
 - This also answers the registration-act question. If the Cancer Registration Act (2020) had
   inflated registered incidence, incidence would sit systematically *above* trend while
   mortality would not. It does not: 38% of incidence fits are below trend, 62% above, and

@@ -91,7 +91,13 @@ def rebuild_index():
         d["dir"] = f.parent.name
         rows.append(d)
     idx = pd.json_normalize(rows)
-    idx["is_holdout"] = idx["dir"].str.endswith("_holdout")      # robust to older summary.json
+    # robust to older summary.json: the directory suffix says what the fit is
+    #   <slug>            full fit            train_until 2022
+    #   <slug>_holdout    fit <=2017          train_until 2017
+    #   <slug>_holdout2007, _holdout2012      rolling-origin backtests (s08)
+    m = idx["dir"].str.extract(r"_holdout(\d{4})?$")[0]
+    idx["is_holdout"] = idx["dir"].str.contains("_holdout")
+    idx["train_until"] = np.where(~idx.is_holdout, 2022, m.fillna("2017").astype(int))
     idx["drift_lo"] = idx.net_drift_pct_per_year.str[0]
     idx["drift"] = idx.net_drift_pct_per_year.str[1]
     idx["drift_hi"] = idx.net_drift_pct_per_year.str[2]
@@ -273,7 +279,7 @@ def main():
         pk = cohort_peak(r.dir) if not r.is_holdout else None
         peaks.append(pk or {})
     idx = pd.concat([idx.reset_index(drop=True), pd.DataFrame(peaks)], axis=1)
-    full, hold = idx[~idx.is_holdout], idx[idx.is_holdout]
+    full, hold = idx[~idx.is_holdout], idx[idx.is_holdout & (idx.train_until == 2017)]
 
     summary = {"n_fits": int(len(idx)), "n_full": int(len(full)), "n_holdout": int(len(hold)),
                "converged_full": int(full.converged.sum()), "converged_holdout": int(hold.converged.sum())}

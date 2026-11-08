@@ -1,7 +1,10 @@
+fig01_data_coverage.png
 fig02_cancer_mortality_asr.png
+fig03_icd_bridge.png
 fig05_incidence_vs_mortality.png
 fig07_drift_by_site.png
 fig08_cohort_peaks.png
 fig09_holdout_krg.png
 fig10_lung_cohorts.png
 fig11_projection_2030.png
+fig12_backtest.png

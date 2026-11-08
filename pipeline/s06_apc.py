@@ -22,6 +22,8 @@ Modes
   python pipeline/s06_apc.py --list                    # print the fit list (for Slurm arrays)
   python pipeline/s06_apc.py --index 7                 # fit number 7 of that list
   --holdout       fit 1993-2017, predict 2018-2022 (out-of-sample check)
+  --train-until Y rolling-origin backtest: fit on periods ending <= Y (2007, 2012, 2017),
+                  predict every later period; --holdout is --train-until 2017
   --future 2      project 2 periods (2023-27, 2028-32) by extrapolating the RW2 priors
 
 Outputs: data/models/apc/<slug>/  posterior.nc (ArviZ), summary.json, fit.png
@@ -66,7 +68,19 @@ def slug(site, sex, ind):
 
 
 # ============================================================ data ==========
-def load_cells(site, sex, indicator, holdout=False):
+PERIOD_END = [int(per.split("-")[1]) for per in PERIODS]           # 1997 .. 2022
+
+
+def n_train_periods(train_until):
+    """Number of training periods for a backtest origin; None means all six."""
+    if train_until is None:
+        return len(PERIODS)
+    if train_until not in PERIOD_END[2:-1]:
+        raise SystemExit(f"--train-until must be one of {PERIOD_END[2:-1]}, got {train_until}")
+    return PERIOD_END.index(train_until) + 1
+
+
+def load_cells(site, sex, indicator, train_until=None):
     g = pd.read_parquet(GRID)
     g = g[(g.region == REGION) & (g.site == site) & (g.sex == sex) & (g.indicator == indicator)
           & ~g.structural_zero & g.person_years.gt(0)].copy()
@@ -74,7 +88,7 @@ def load_cells(site, sex, indicator, holdout=False):
     g["p"] = g.period.map(PERIODS.index)                                      # 0..5
     g["y"] = np.rint(g.cases).astype(int)
     g = g.sort_values(["p", "a"])
-    train = g[g.p < 5] if holdout else g
+    train = g[g.p < n_train_periods(train_until)]
     return g, train
 
 
@@ -109,7 +123,10 @@ def build_model():
         d2 = numpyro.sample(f"{name}_d2", dist.Normal(0, 1).expand([max(n - 2, 0)]))
         return rw2_curve(d2, n, scale)
 
-    def model(a_idx, p_idx, c_idx, log_py, y, A, P, C, n_future):
+    def model(a_idx, p_idx, c_idx, log_py, y, A, P, C, n_future, n_obs=None):
+        # n_obs: periods with data (< P in a backtest); the period curvature is detrended on
+        # those only, so unobserved periods are pure RW2 extrapolation, as in a projection
+        n_obs = P if n_obs is None else n_obs
         Pf, Cf = P + n_future, C + n_future
         # age: level + first-order random walk (increments of ~0.3-0.8 per 5-y step are
         # typical, so a non-centred RW1 is well conditioned; an RW2 on a 6-log-unit curve
@@ -121,7 +138,7 @@ def build_model():
         drift = numpyro.sample("drift", dist.Normal(0.0, 0.5))
         s_per = numpyro.sample("s_period", dist.HalfNormal(0.5))
         s_coh = numpyro.sample("s_cohort", dist.HalfNormal(0.5))
-        beta = detrend(rw2("period", Pf, s_per), P)
+        beta = detrend(rw2("period", Pf, s_per), n_obs)
         gamma = detrend(rw2("cohort", Cf, s_coh), C)
         numpyro.deterministic("alpha", alpha)
         numpyro.deterministic("beta", beta)
@@ -147,7 +164,8 @@ def fit_one(site, sex, indicator, args):
     import jax
     from numpyro.infer import MCMC, NUTS, init_to_median
 
-    g, train = load_cells(site, sex, indicator, args.holdout)
+    g, train = load_cells(site, sex, indicator, args.train_until)
+    n_tr = n_train_periods(args.train_until)
     if g.empty or g.cases_per_year.sum() / g.period.nunique() < MIN_CASES_PER_YEAR:
         log(f"skip {site}/{sex}/{indicator}: too few cases")
         return None
@@ -157,7 +175,8 @@ def fit_one(site, sex, indicator, args):
     c = p - a + (A - 1)
     data = dict(a_idx=jax.numpy.array(a), p_idx=jax.numpy.array(p), c_idx=jax.numpy.array(c),
                 log_py=jax.numpy.array(np.log(train.person_years.values)),
-                y=jax.numpy.array(train.y.values), A=A, P=P, C=C, n_future=args.future)
+                y=jax.numpy.array(train.y.values), A=A, P=P, C=C, n_future=args.future,
+                n_obs=P if args.detrend_all else n_tr)
 
     kernel = NUTS(build_model(), target_accept_prob=args.target_accept, max_tree_depth=10,
                   init_strategy=init_to_median(num_samples=50))
@@ -176,7 +195,9 @@ def fit_one(site, sex, indicator, args):
     post = idata.posterior
     rate = post.rate_grid.values.reshape(-1, A, P + args.future)          # draws x A x P'
     drift_yr = (np.exp(post.drift.values.ravel() / 5) - 1) * 100         # % per year
-    out = {"site": site, "sex": sex, "indicator": indicator, "is_holdout": args.holdout,
+    out = {"site": site, "sex": sex, "indicator": indicator, "is_holdout": args.train_until is not None,
+           "train_until": args.train_until or PERIOD_END[-1], "n_train_periods": n_tr,
+           "detrend_all": bool(args.detrend_all),
            "n_cells": int(len(train)), "cases_per_year": float(g.cases_per_year.sum() / 6),
            "chains": args.chains, "samples": args.samples, "warmup": args.warmup,
            "target_accept": args.target_accept, "seed": args.seed, "seconds": round(secs, 1),
@@ -198,27 +219,34 @@ def fit_one(site, sex, indicator, args):
     big = ok & (np.nan_to_num(cpy) >= 20)
     out["mape_fitted_pct_all"] = float(np.mean(np.abs(fit_med[:, :P][ok] / obs[ok] - 1)) * 100)
     out["mape_fitted_pct"] = float(np.mean(np.abs(fit_med[:, :P][big] / obs[big] - 1)) * 100)
-    if args.holdout:
-        test = g[g.p == 5]
-        pred = rate[:, test.a.values, 5]                                   # draws x cells
-        # posterior predictive: parameter uncertainty + extra-Poisson eps + Poisson noise
+    if args.train_until is not None:
+        # every period after the training window, scored at horizon 1, 2, ...
         rng = np.random.default_rng(args.seed)
         s_eps = post.s_eps.values.ravel()[:, None]
-        mu = pred / 1e5 * test.person_years.values * np.exp(rng.normal(0, 1, pred.shape) * s_eps)
-        pred_cases = rng.poisson(mu)
-        lo, hi = np.percentile(pred_cases, [5, 95], axis=0)
-        inside = ((test.cases.values >= lo) & (test.cases.values <= hi)).mean()
-        asr_obs = asr(obs[:, 5]); asr_pred = asr(np.median(rate[:, :, 5], axis=0))
-        out["holdout_check"] = {"period": "2018-2022", "asr_observed": asr_obs, "asr_predicted": asr_pred,
-                          "asr_error_pct": (asr_pred / asr_obs - 1) * 100,
-                          "cells_in_90pct_interval": float(inside)}
+        out["backtest"] = {}
+        for k in range(n_tr, P):
+            test = g[g.p == k]
+            pred = rate[:, test.a.values, k]                                   # draws x cells
+            # posterior predictive: parameter uncertainty + extra-Poisson eps + Poisson noise
+            mu = pred / 1e5 * test.person_years.values * np.exp(rng.normal(0, 1, pred.shape) * s_eps)
+            pred_cases = rng.poisson(mu)
+            lo, hi = np.percentile(pred_cases, [5, 95], axis=0)
+            inside = ((test.cases.values >= lo) & (test.cases.values <= hi)).mean()
+            asr_obs = asr(obs[:, k]); asr_pred = asr(np.median(rate[:, :, k], axis=0))
+            chk = {"period": PERIODS[k], "horizon": k - n_tr + 1, "asr_observed": asr_obs,
+                   "asr_predicted": asr_pred, "asr_error_pct": (asr_pred / asr_obs - 1) * 100,
+                   "cells_in_90pct_interval": float(inside)}
+            out["backtest"][PERIODS[k]] = chk
+            if k == n_tr:
+                out["holdout_check"] = chk                                     # horizon 1, as before
     if args.future:
         out["projection"] = {f"{2023 + 5 * k}-{2027 + 5 * k}":
                              [float(np.percentile([asr(r[:, P + k]) for r in rate], q)) for q in (2.5, 50, 97.5)]
                              for k in range(args.future)}
     out["asr_fitted_by_period"] = {per: asr(fit_med[:, i]) for i, per in enumerate(PERIODS)}
 
-    d = OUT / (slug(site, sex, indicator) + ("_holdout" if args.holdout else ""))
+    suffix = "" if args.train_until is None else ("_holdout" if args.train_until == 2017 else f"_holdout{args.train_until}")
+    d = OUT / (slug(site, sex, indicator) + suffix)
     d.mkdir(parents=True, exist_ok=True)
     idata.to_netcdf(d / "posterior.nc")
     (d / "summary.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
@@ -228,7 +256,9 @@ def fit_one(site, sex, indicator, args):
     log(f"{flag} {site}/{sex}/{indicator}: {secs:.0f}s on {out['device']}, div={div}, "
         f"rhat={rhat_max:.3f}, ess={diag['ess_bulk_min']:.0f}/{diag['ess_tail_min']:.0f}, "
         f"bfmi={diag['bfmi_min']:.2f}, drift={out['net_drift_pct_per_year'][1]:+.2f}%/yr"
-        + (f", holdout ASR err {out['holdout_check']['asr_error_pct']:+.1f}%" if args.holdout else ""))
+        + (f", train<={args.train_until} ASR err h1 {out['holdout_check']['asr_error_pct']:+.1f}%"
+           + "".join(f" h{c['horizon']} {c['asr_error_pct']:+.1f}%" for c in list(out["backtest"].values())[1:])
+           if args.train_until is not None else ""))
     return out
 
 
@@ -350,10 +380,19 @@ def main():
     ap.add_argument("--all", action="store_true"); ap.add_argument("--list", action="store_true")
     ap.add_argument("--index", type=int)
     ap.add_argument("--holdout", action="store_true"); ap.add_argument("--future", type=int, default=0)
+    ap.add_argument("--detrend-all", dest="detrend_all", action="store_true",
+                    help="backtest only: detrend the period curvature over all P periods (pre-v1.1 "
+                         "behaviour) instead of the observed ones; for A/B of sampler geometry")
+    ap.add_argument("--train-until", dest="train_until", type=int, default=None,
+                    help="rolling-origin backtest: last training period end year (2007, 2012, 2017)")
     ap.add_argument("--chains", type=int, default=4); ap.add_argument("--warmup", type=int, default=2000)
     ap.add_argument("--samples", type=int, default=2000); ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--target-accept", dest="target_accept", type=float, default=0.99)
     args = ap.parse_args()
+    if args.holdout and args.train_until is None:
+        args.train_until = 2017
+    if args.train_until is not None and args.future:
+        sys.exit("--train-until and --future are exclusive: a backtest predicts the held-out periods")
 
     fl = fit_list()
     if args.list:
@@ -386,7 +425,9 @@ def main():
         new = pd.json_normalize(results)
         if idx.exists():
             old = pd.read_parquet(idx)
-            key = ["site", "sex", "indicator", "is_holdout"]
+            key = ["site", "sex", "indicator", "train_until"]
+            if "train_until" not in old:                       # pre-v1.1 index rows
+                old["train_until"] = np.where(old.is_holdout, 2017, PERIOD_END[-1])
             old = old.merge(new[key].drop_duplicates(), on=key, how="left", indicator=True)
             old = old[old._merge == "left_only"].drop(columns="_merge")
             new = pd.concat([old, new], ignore_index=True)
